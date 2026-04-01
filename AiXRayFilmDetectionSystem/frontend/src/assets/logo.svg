@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="20" fill="#409EFF"/>
+  <g transform="translate(24, 20)">
+    <path d="M40 10 C20 10 10 25 10 45 L10 60 C10 75 20 88 35 88 L40 88 L40 10Z" fill="white" opacity="0.9"/>
+    <path d="M40 10 C60 10 70 25 70 45 L70 60 C70 75 60 88 45 88 L40 88 L40 10Z" fill="white" opacity="0.9"/>
+    <rect x="30" y="55" width="20" height="3" rx="1.5" fill="#409EFF"/>
+    <rect x="30" y="62" width="20" height="3" rx="1.5" fill="#409EFF"/>
+    <rect x="30" y="69" width="20" height="3" rx="1.5" fill="#409EFF"/>
+    <rect x="38" y="2" width="4" height="12" rx="2" fill="white"/>
+  </g>
+  <text x="64" y="118" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="Arial">AI X-Ray</text>
+</svg>
