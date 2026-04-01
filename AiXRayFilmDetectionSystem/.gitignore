@@ -1,0 +1,79 @@
+# ==================== Python ====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.egg
+.eggs/
+
+# ==================== 虚拟环境 ====================
+venv/
+.venv/
+env/
+ENV/
+
+# ==================== 数据库 ====================
+*.db
+*.db-shm
+*.db-wal
+
+# ==================== 环境变量 ====================
+.env
+.env.local
+.env.*.local
+
+# ==================== IDE ====================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ==================== OS ====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==================== 日志 ====================
+*.log
+logs/
+
+# ==================== 模型权重（大文件） ====================
+backend/weights/*.pth
+backend/weights/*.pt
+backend/weights/*.onnx
+backend/weights/*.pkl
+# 保留目录结构
+!backend/weights/.gitkeep
+
+# ==================== 运行时静态文件（上传的影像/热力图/报告） ====================
+backend/static/uploads/
+backend/static/heatmaps/
+backend/static/reports/
+backend/static/images/
+# 保留目录结构
+!backend/static/uploads/.gitkeep
+!backend/static/heatmaps/.gitkeep
+!backend/static/reports/.gitkeep
+
+# ==================== 前端 ====================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ==================== 测试图像 ====================
+test_image/
+
+# ==================== 临时文件 ====================
+*.tmp
+*.bak
+*.swp
+init_out.txt
+glass-dashboard.html

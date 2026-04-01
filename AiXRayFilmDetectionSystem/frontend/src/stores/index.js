@@ -38,6 +38,9 @@ export const useUserStore = defineStore('user', {
       this.token = res.data.access_token
       this.user = res.data.user
       localStorage.setItem('access_token', res.data.access_token)
+      if (res.data.refresh_token) {
+        localStorage.setItem('refresh_token', res.data.refresh_token)
+      }
       localStorage.setItem('user', JSON.stringify(res.data.user))
       ElMessage.success('登录成功')
       // 根据角色返回首页路由
@@ -48,6 +51,7 @@ export const useUserStore = defineStore('user', {
       this.token = ''
       this.user = null
       localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       router.push('/login')
     },

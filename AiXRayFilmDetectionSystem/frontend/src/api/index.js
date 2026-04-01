@@ -8,6 +8,19 @@ const request = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
+// Token 自动刷新状态
+let isRefreshing = false
+let pendingRequests = []
+
+function onTokenRefreshed(newToken) {
+  pendingRequests.forEach(cb => cb(newToken))
+  pendingRequests = []
+}
+
+function addPendingRequest(callback) {
+  pendingRequests.push(callback)
+}
+
 request.interceptors.request.use(
   config => {
     const token = localStorage.getItem('access_token')
@@ -34,12 +47,52 @@ request.interceptors.response.use(
     return res
   },
   error => {
-    if (error.response?.status === 401) {
+    const originalRequest = error.config
+    const status = error.response?.status
+
+    if (status === 401 && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refresh_token')
+      if (refreshToken && !originalRequest.url?.includes('/api/auth/')) {
+        if (isRefreshing) {
+          return new Promise(resolve => {
+            addPendingRequest(token => {
+              originalRequest.headers.Authorization = `Bearer ${token}`
+              resolve(request(originalRequest))
+            })
+          })
+        }
+        originalRequest._retry = true
+        isRefreshing = true
+
+        return axios.post('/api/auth/refresh', {}, {
+          headers: { Authorization: `Bearer ${refreshToken}` }
+        }).then(res => {
+          const newToken = res.data?.data?.access_token
+          if (newToken) {
+            localStorage.setItem('access_token', newToken)
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            onTokenRefreshed(newToken)
+            return request(originalRequest)
+          }
+          throw new Error('Token refresh failed')
+        }).catch(() => {
+          pendingRequests = []
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user')
+          router.push('/login')
+          ElMessage.error('登录已过期，请重新登录')
+          return Promise.reject(error)
+        }).finally(() => {
+          isRefreshing = false
+        })
+      }
+
       localStorage.removeItem('access_token')
       localStorage.removeItem('user')
       router.push('/login')
       ElMessage.error('登录已过期，请重新登录')
-    } else if (error.response?.status === 403) {
+    } else if (status === 403) {
       ElMessage.error('权限不足')
     } else {
       ElMessage.error(error.response?.data?.message || '网络错误')

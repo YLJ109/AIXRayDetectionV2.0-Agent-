@@ -7,26 +7,36 @@
 ```
 AiXRayFilmDetectionSystem/
 ├── backend/                          # Flask 后端
-│   ├── api/                          # API路由（auth/diagnosis/patient/user/system）
+│   ├── api/                          # API路由（auth/diagnosis/patient/user/system/llm）
 │   ├── core/                         # 核心配置（config/extensions）
 │   ├── models/                       # 数据模型（SQLAlchemy ORM）
-│   ├── services/                     # 业务服务（AI模型/诊断/患者/用户）
+│   ├── services/                     # 业务服务（AI模型/诊断/患者/用户/LLM）
 │   ├── utils/                        # 工具类（审计日志/图像预处理/通用工具）
 │   ├── weights/                      # 模型权重（best_model_full_mem.pth）
 │   ├── static/                       # 静态文件（运行时自动创建）
+│   ├── data/                         # SQLite数据库
 │   ├── app.py                        # Flask应用入口
 │   ├── init_database.py              # 数据库初始化脚本
+│   ├── migrate_db.py                 # 数据库增量迁移脚本
 │   └── requirements.txt              # Python依赖
 ├── frontend/                         # Vue3 前端
 │   ├── src/
-│   │   ├── api/                      # Axios接口封装
-│   │   ├── components/               # 可复用组件（Layout）
+│   │   ├── api/                      # Axios接口封装（含Token自动刷新）
+│   │   ├── components/               # 可复用组件（Layout/AdminLayout）
 │   │   ├── router/                   # 路由配置（含权限守卫）
-│   │   ├── stores/                   # Pinia状态管理
-│   │   ├── styles/                   # 全局样式
-│   │   └── views/                    # 页面视图（6个页面）
+│   │   ├── stores/                   # Pinia状态管理（User/Diagnosis/Consultation）
+│   │   ├── styles/                   # 全局样式（玻璃拟态深色科技风）
+│   │   └── views/                    # 页面视图（13个页面）
 │   ├── package.json
 │   └── vite.config.js
+├── deploy/                           # 部署配置
+│   ├── nginx.conf                    # Nginx反向代理配置
+│   ├── supervisord.conf              # 进程管理配置
+│   └── entrypoint.sh                 # 容器启动脚本
+├── test_image/                       # 测试图像数据集
+├── Dockerfile                        # Docker多阶段构建
+├── docker-compose.yml                # Docker编排
+├── .env                              # 环境变量配置
 └── README.md
 ```
 
@@ -52,8 +62,10 @@ AiXRayFilmDetectionSystem/
 2. **诊断报告** - 通义千问AI自动生成专业诊断报告，医生审核机制
 3. **患者管理** - 档案CRUD、病史记录、诊断历史关联
 4. **数据看板** - 诊断量统计、病种分布、趋势图表、模型监控
-5. **用户权限** - JWT认证、RBAC角色控制（管理员/医生）
+5. **用户权限** - JWT认证、RBAC角色控制（管理员/医生/护士）
 6. **审计安全** - 全操作日志、API限流、软删除
+7. **大模型管理** - 多提供商统一管理（通义千问/OpenAI/DeepSeek/豆包等）
+8. **AI咨询** - 聊天式AI医学咨询，会话持久化
 
 ## 快速开始
 
@@ -90,10 +102,38 @@ npm run build                  # 生产构建
 
 ## 生产部署
 
+### 方式一：Docker Compose 部署（推荐）
+
+```bash
+# 1. 将模型权重放入 backend/weights/ 目录
+cp best_model_full_mem.pth AiXRayFilmDetectionSystem/backend/weights/
+
+# 2. 配置环境变量
+cp .env.example .env  # 编辑 .env 设置密钥
+
+# 3. 一键构建并启动
+docker compose up -d --build
+
+# 4. 查看日志
+docker compose logs -f
+
+# 访问 http://localhost:5000
+```
+
+### 方式二：手动部署
+
 ```bash
 # 后端
+cd AiXRayFilmDetectionSystem/backend
+pip install -r requirements.txt
+python init_database.py        # 初始化数据库
+python migrate_db.py           # 执行增量迁移
 gunicorn -w 4 -b 0.0.0.0:5000 "backend.app:create_app()"
-# 前端构建后 nginx 托管 dist/ 目录
+
+# 前端
+cd AiXRayFilmDetectionSystem/frontend
+npm install && npm run build   # 构建产物在 dist/ 目录
+# 使用 nginx 托管 dist/ 并反向代理 /api 到后端
 ```
 
 ## 安全合规
