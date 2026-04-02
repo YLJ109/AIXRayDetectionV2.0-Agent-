@@ -9,7 +9,9 @@ dist/
 build/
 *.egg
 .eggs/
-
+.vscode
+pack
+.env
 # ==================== 虚拟环境 ====================
 venv/
 .venv/
