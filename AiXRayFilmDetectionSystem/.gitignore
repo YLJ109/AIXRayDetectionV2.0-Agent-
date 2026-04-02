@@ -46,10 +46,10 @@ desktop.ini
 logs/
 
 # ==================== 模型权重（大文件） ====================
-backend/weights/*.pth
-backend/weights/*.pt
-backend/weights/*.onnx
-backend/weights/*.pkl
+# backend/weights/*.pth
+# backend/weights/*.pt
+# backend/weights/*.onnx
+# backend/weights/*.pkl
 # 保留目录结构
 !backend/weights/.gitkeep
 
@@ -69,7 +69,7 @@ frontend/dist/
 frontend/.vite/
 
 # ==================== 测试图像 ====================
-test_image/
+# test_image/
 
 # ==================== 临时文件 ====================
 *.tmp
