@@ -206,17 +206,22 @@
     </div>
 
     <!-- 上传对话框 -->
-    <el-dialog v-model="uploadDialogVisible" title="上传模型文件" width="500px" destroy-on-close
+    <el-dialog v-model="uploadDialogVisible" title="上传模型文件" width="650px" destroy-on-close
                class="dark-dialog">
-      <el-form label-width="90px">
+      <el-form label-width="100px">
         <el-form-item label="模型文件">
           <el-upload ref="uploadRef" drag :auto-upload="false" :limit="1"
             :accept="'.pth,.pt,.onnx,.pkl,.bin'"
             :on-change="onFileChange" :on-remove="onFileRemove">
-            <div class="upload-area">
+            <div class="upload-area" v-if="!uploadFile">
               <el-icon :size="40"><UploadFilled /></el-icon>
               <div class="upload-text">将模型文件拖到此处，或<em>点击上传</em></div>
               <div class="upload-hint">支持 .pth / .pt / .onnx / .pkl / .bin 格式</div>
+            </div>
+            <div class="upload-area uploaded" v-else>
+              <el-icon :size="36" color="#10B981"><CircleCheckFilled /></el-icon>
+              <div class="upload-text">已选择文件，可拖入新文件替换</div>
+              <div class="upload-hint">{{ uploadFileName }}</div>
             </div>
           </el-upload>
         </el-form-item>
@@ -235,7 +240,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { systemApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload, Refresh, UploadFilled } from '@element-plus/icons-vue'
+import { Upload, Refresh, UploadFilled, CircleCheckFilled, Cpu, Monitor, Grid, PictureFilled, Document, Switch, RefreshLeft } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const savingParams = ref(false)
@@ -243,6 +248,7 @@ const resetting = ref(false)
 const uploading = ref(false)
 const uploadDialogVisible = ref(false)
 const uploadFile = ref(null)
+const uploadFileName = ref('')
 const models = ref([])
 const modelStatus = ref({})
 
@@ -336,15 +342,18 @@ async function handleResetParams() {
 
 function showUploadDialog() {
   uploadFile.value = null
+  uploadFileName.value = ''
   uploadDialogVisible.value = true
 }
 
 function onFileChange(file) {
   uploadFile.value = file.raw
+  uploadFileName.value = file.name
 }
 
 function onFileRemove() {
   uploadFile.value = null
+  uploadFileName.value = ''
 }
 
 async function handleUpload() {
@@ -487,8 +496,10 @@ onMounted(() => { fetchData() })
   }
 }
 
+  :deep(.el-form-item__content) { display: block !important; }
   :deep(.el-upload) { width: 100%; }
   :deep(.el-upload-dragger) {
+    width: 100% !important;
     background: rgba(30, 41, 59, 0.6) !important;
     border: 2px dashed rgba(239, 68, 68, 0.3) !important;
     border-radius: var(--radius-md) !important;

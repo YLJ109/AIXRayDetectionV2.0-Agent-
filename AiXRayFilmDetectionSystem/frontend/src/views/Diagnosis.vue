@@ -51,7 +51,9 @@
       <div class="zone-card registration-zone" :class="{ active: currentStep === 1 }">
         <div class="zone-header">
           <div class="zone-badge">
-            <el-icon><User /></el-icon>
+            <el-icon>
+              <User />
+            </el-icon>
           </div>
           <div class="zone-title-group">
             <h3 class="zone-title">患者挂号</h3>
@@ -84,9 +86,8 @@
           <el-form :model="form" :rules="rules" ref="formRef" label-width="80px" size="default">
             <el-form-item label="选择患者" prop="patient_id">
               <el-select v-model="form.patient_id" placeholder="请选择患者" filterable style="width:100%"
-                         @change="onPatientChange">
-                <el-option v-for="p in patientList" :key="p.id" :label="`${p.patient_no} - ${p.name}`"
-                           :value="p.id" />
+                @change="onPatientChange">
+                <el-option v-for="p in patientList" :key="p.id" :label="`${p.patient_no} - ${p.name}`" :value="p.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="症状描述">
@@ -103,7 +104,9 @@
       <div class="zone-card examination-zone" :class="{ active: currentStep === 2 }">
         <div class="zone-header">
           <div class="zone-badge">
-            <el-icon><Picture /></el-icon>
+            <el-icon>
+              <Picture />
+            </el-icon>
           </div>
           <div class="zone-title-group">
             <h3 class="zone-title">影像检查</h3>
@@ -118,19 +121,13 @@
         <div class="zone-body">
           <div class="upload-area">
             <div class="glass-upload-area" :class="{ 'has-file': selectedFile }">
-              <el-upload
-                ref="uploadRef"
-                drag
-                :auto-upload="false"
-                :show-file-list="false"
-                :limit="1"
-                accept=".png,.jpg,.jpeg,.bmp,.gif,.webp"
-                :on-change="onFileChange"
-                class="upload-inner"
-              >
+              <el-upload ref="uploadRef" drag :auto-upload="false" :show-file-list="false" :limit="1"
+                accept=".png,.jpg,.jpeg,.bmp,.gif,.webp" :on-change="onFileChange" class="upload-inner">
                 <div class="upload-placeholder" v-if="!selectedFile">
                   <div class="upload-icon">
-                    <el-icon :size="36"><Upload /></el-icon>
+                    <el-icon :size="36">
+                      <Upload />
+                    </el-icon>
                   </div>
                   <div class="upload-text">拖拽胸部X光影像到此处</div>
                   <div class="upload-hint">或 <em>点击上传</em></div>
@@ -140,16 +137,19 @@
               <div class="upload-preview" v-if="selectedFile">
                 <img :src="imagePreviewUrl" alt="preview" />
                 <div class="preview-overlay" @click="onFileRemove">
-                  <el-icon :size="20"><Delete /></el-icon>
+                  <el-icon :size="20">
+                    <Delete />
+                  </el-icon>
                   <span>移除影像</span>
                 </div>
               </div>
             </div>
           </div>
-          <el-button type="primary" size="large" class="diagnose-btn" :loading="diagnosing"
-                     @click="handleDiagnose" :disabled="!selectedFile || !form.patient_id"
-                     style="width:100%; margin-top:16px;">
-            <el-icon><SetUp /></el-icon> 开始AI诊断
+          <el-button type="primary" size="large" class="diagnose-btn" :loading="diagnosing" @click="handleDiagnose"
+            :disabled="!selectedFile || !form.patient_id" style="width:100%; margin-top:16px;">
+            <el-icon>
+              <SetUp />
+            </el-icon> 开始AI诊断
           </el-button>
         </div>
       </div>
@@ -159,7 +159,9 @@
     <div class="zone-card result-zone" v-if="result" :class="{ active: currentStep === 3 }">
       <div class="zone-header">
         <div class="zone-badge result-badge">
-          <el-icon><Cpu /></el-icon>
+          <el-icon>
+            <Cpu />
+          </el-icon>
         </div>
         <div class="zone-title-group">
           <h3 class="zone-title">AI诊断结果</h3>
@@ -176,26 +178,28 @@
             <div class="image-box">
               <div class="image-label">原始影像</div>
               <div class="preview-img-wrapper" :class="{ 'has-image': imagePreviewUrl || result?.image_path }">
-                <el-image
-                  v-if="imagePreviewUrl || result?.image_path"
-                  :src="imagePreviewUrl || result.image_path"
-                  fit="contain" class="preview-img"
-                  :preview-src-list="[imagePreviewUrl || result.image_path]"
-                >
+                <el-image v-if="imagePreviewUrl || result?.image_path" :src="imagePreviewUrl || result.image_path"
+                  fit="contain" class="preview-img" :preview-src-list="[imagePreviewUrl || result.image_path]">
                   <template #error>
-                    <div class="image-error"><el-icon :size="28"><Picture /></el-icon><span>影像加载失败</span></div>
+                    <div class="image-error"><el-icon :size="28">
+                        <Picture />
+                      </el-icon><span>影像加载失败</span></div>
                   </template>
                 </el-image>
-                <div v-else class="image-placeholder"><el-icon :size="28"><Picture /></el-icon><span>暂无影像</span></div>
+                <div v-else class="image-placeholder"><el-icon :size="28">
+                    <Picture />
+                  </el-icon><span>暂无影像</span></div>
               </div>
             </div>
             <div class="image-box" v-if="result?.heatmap_path">
               <div class="image-label">Grad-CAM 热力图</div>
               <div class="preview-img-wrapper has-image">
                 <el-image :src="result.heatmap_path" fit="contain" class="preview-img"
-                          :preview-src-list="[result.heatmap_path]">
+                  :preview-src-list="[result.heatmap_path]">
                   <template #error>
-                    <div class="image-error"><el-icon :size="28"><Picture /></el-icon><span>热力图加载失败</span></div>
+                    <div class="image-error"><el-icon :size="28">
+                        <Picture />
+                      </el-icon><span>热力图加载失败</span></div>
                   </template>
                 </el-image>
               </div>
@@ -207,9 +211,15 @@
             <!-- 主结果 -->
             <div class="result-hero" :class="result.ai_result">
               <div class="result-hero-icon">
-                <el-icon v-if="result.ai_result === 'normal'"><CircleCheck /></el-icon>
-                <el-icon v-else-if="result.ai_result === 'pneumonia'"><Warning /></el-icon>
-                <el-icon v-else><InfoFilled /></el-icon>
+                <el-icon v-if="result.ai_result === 'normal'">
+                  <CircleCheck />
+                </el-icon>
+                <el-icon v-else-if="result.ai_result === 'pneumonia'">
+                  <Warning />
+                </el-icon>
+                <el-icon v-else>
+                  <InfoFilled />
+                </el-icon>
               </div>
               <div class="result-hero-text">
                 <div class="result-hero-label">{{ resultLabel }}</div>
@@ -264,7 +274,10 @@
                   <span class="prob-label">正常</span>
                   <span class="prob-value">{{ (result.probabilities.normal * 100).toFixed(1) }}%</span>
                 </div>
-                <div class="prob-bar"><div class="prob-fill" :style="{ width: result.probabilities.normal * 100 + '%' }" style="background: var(--primary);"></div></div>
+                <div class="prob-bar">
+                  <div class="prob-fill" :style="{ width: result.probabilities.normal * 100 + '%' }"
+                    style="background: var(--primary);"></div>
+                </div>
               </div>
               <div class="prob-item">
                 <div class="prob-header">
@@ -272,7 +285,10 @@
                   <span class="prob-label">肺炎</span>
                   <span class="prob-value">{{ (result.probabilities.pneumonia * 100).toFixed(1) }}%</span>
                 </div>
-                <div class="prob-bar"><div class="prob-fill" :style="{ width: result.probabilities.pneumonia * 100 + '%' }" style="background: var(--orange);"></div></div>
+                <div class="prob-bar">
+                  <div class="prob-fill" :style="{ width: result.probabilities.pneumonia * 100 + '%' }"
+                    style="background: var(--orange);"></div>
+                </div>
               </div>
               <div class="prob-item">
                 <div class="prob-header">
@@ -280,7 +296,10 @@
                   <span class="prob-label">肺结核</span>
                   <span class="prob-value">{{ (result.probabilities.tuberculosis * 100).toFixed(1) }}%</span>
                 </div>
-                <div class="prob-bar"><div class="prob-fill" :style="{ width: result.probabilities.tuberculosis * 100 + '%' }" style="background: var(--purple);"></div></div>
+                <div class="prob-bar">
+                  <div class="prob-fill" :style="{ width: result.probabilities.tuberculosis * 100 + '%' }"
+                    style="background: var(--purple);"></div>
+                </div>
               </div>
             </div>
 
@@ -301,14 +320,19 @@
           <div class="result-actions-panel">
             <div class="action-title">医生审核</div>
             <div class="action-buttons">
-              <el-button type="primary" size="large" @click="handleReview(true)" :loading="reviewing" class="action-btn confirm">
+              <el-button size="large" @click="handleReview(true)" :loading="reviewing" class="action-btn confirm">
                 <el-icon><Select /></el-icon> 确认诊断
               </el-button>
               <el-button size="large" @click="showReviseDialog" class="action-btn revise">
-                <el-icon><Edit /></el-icon> 修正诊断
+                <el-icon>
+                  <Edit />
+                </el-icon> 修正诊断
               </el-button>
-              <el-button type="primary" size="large" @click="handleGenerateReport" :loading="generatingReport" class="action-btn report">
-                <el-icon><Document /></el-icon> 生成报告
+              <el-button size="large" @click="handleGenerateReport" :loading="generatingReport"
+                class="action-btn report">
+                <el-icon>
+                  <Document />
+                </el-icon> 生成报告
               </el-button>
             </div>
             <div class="action-note">确认或修正诊断结果后，可生成完整诊断报告</div>
@@ -322,7 +346,10 @@
       <div class="zone-body">
         <div class="empty-state">
           <div class="empty-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+            </svg>
           </div>
           <h3>等待影像上传与AI诊断</h3>
           <p>请先选择患者、上传胸部X光影像后开始诊断</p>
@@ -334,7 +361,9 @@
     <div class="zone-card report-zone" v-if="result && reportContent" :class="{ active: currentStep === 4 }">
       <div class="zone-header">
         <div class="zone-badge report-badge">
-          <el-icon><Document /></el-icon>
+          <el-icon>
+            <Document />
+          </el-icon>
         </div>
         <div class="zone-title-group">
           <h3 class="zone-title">诊断报告</h3>
@@ -343,10 +372,14 @@
         <div class="zone-status">
           <div class="report-toolbar">
             <el-button size="small" @click="handlePrintReport">
-              <el-icon><Printer /></el-icon> 打印报告
+              <el-icon>
+                <Printer />
+              </el-icon> 打印报告
             </el-button>
             <el-button type="primary" size="small" @click="handleGenerateReport" :loading="generatingReport">
-              <el-icon><Refresh /></el-icon> 重新生成
+              <el-icon>
+                <Refresh />
+              </el-icon> 重新生成
             </el-button>
           </div>
         </div>
@@ -492,7 +525,7 @@ async function handleDiagnose() {
     const res = await diagnosisApi.uploadAndDiagnose(formData)
     result.value = res.data
     ElMessage.success('AI诊断完成')
-  } catch (e) {} finally {
+  } catch (e) { } finally {
     diagnosing.value = false
   }
 }
@@ -510,7 +543,7 @@ async function handleReview(confirm) {
     await diagnosisApi.review(result.value.record_id, data)
     ElMessage.success(confirm ? '诊断已确认' : '诊断已修正')
     reviseDialogVisible.value = false
-  } catch (e) {} finally {
+  } catch (e) { } finally {
     reviewing.value = false
   }
 }
@@ -527,7 +560,7 @@ async function handleGenerateReport() {
     const res = await diagnosisApi.generateReport(result.value.record_id)
     reportContent.value = res.data.report_content
     ElMessage.success('报告生成成功')
-  } catch (e) {} finally {
+  } catch (e) { } finally {
     generatingReport.value = false
   }
 }
@@ -572,7 +605,7 @@ async function handlePrintReport() {
   const resultIcon = r.ai_result === 'normal' ? '&#10003;' : r.ai_result === 'pneumonia' ? '&#9888;' : '&#33;'
 
   const now = new Date()
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
   // 转换图片为base64
   const [imgBase64, heatmapBase64] = await Promise.all([
@@ -710,7 +743,7 @@ async function handlePrintReport() {
     </div>
   </div>
 
-  ${reportText ? `<div class="rtx">${reportText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+  ${reportText ? `<div class="rtx">${reportText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : ''}
 
   <div class="ft">
     <span>本报告由AI辅助诊断系统生成，仅供临床医生参考</span>
@@ -738,7 +771,7 @@ onMounted(async () => {
   try {
     const res = await patientApi.getList({ page: 1, per_page: 200 })
     patientList.value = res.data.items
-  } catch (e) {}
+  } catch (e) { }
 })
 </script>
 
@@ -746,14 +779,35 @@ onMounted(async () => {
 .diagnosis-page {
   .page-header {
     margin-bottom: 20px;
+
     .page-title {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
-      font-size: 28px; font-weight: 700;
-      .title-secondary { color: var(--text-secondary); font-weight: 400; font-size: 20px; }
-      .title-sep { color: var(--glass-border); font-weight: 300; }
-      .title-main { color: var(--text-primary); }
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+      font-size: 28px;
+      font-weight: 700;
+
+      .title-secondary {
+        color: var(--text-secondary);
+        font-weight: 400;
+        font-size: 20px;
+      }
+
+      .title-sep {
+        color: var(--glass-border);
+        font-weight: 300;
+      }
+
+      .title-main {
+        color: var(--text-primary);
+      }
     }
-    .page-subtitle { font-size: 14px; color: var(--text-secondary); }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
   }
 
   // ========== 流程步骤指示器 ==========
@@ -773,27 +827,56 @@ onMounted(async () => {
     &::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0; height: 1px;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
       background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
     }
 
     .step {
-      display: flex; align-items: center; gap: 14px; flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
 
       .step-dot {
-        width: 40px; height: 40px; border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
         background: rgba(255, 255, 255, 0.04);
         border: 2px solid var(--glass-border);
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: all 0.4s ease;
         flex-shrink: 0;
-        span { font-size: 15px; font-weight: 700; color: var(--text-muted); transition: color 0.4s ease; }
+
+        span {
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--text-muted);
+          transition: color 0.4s ease;
+        }
       }
 
       .step-info {
-        display: flex; flex-direction: column; gap: 2px;
-        .step-title { font-size: 14px; font-weight: 600; color: var(--text-muted); transition: color 0.4s ease; }
-        .step-desc { font-size: 12px; color: var(--text-muted); opacity: 0.6; }
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .step-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-muted);
+          transition: color 0.4s ease;
+        }
+
+        .step-desc {
+          font-size: 12px;
+          color: var(--text-muted);
+          opacity: 0.6;
+        }
       }
 
       &.active {
@@ -801,27 +884,49 @@ onMounted(async () => {
           background: rgba(16, 185, 129, 0.15);
           border-color: var(--primary);
           box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
-          span { color: var(--primary); }
+
+          span {
+            color: var(--primary);
+          }
         }
-        .step-title { color: var(--text-primary); }
-        .step-desc { opacity: 1; color: var(--text-secondary); }
+
+        .step-title {
+          color: var(--text-primary);
+        }
+
+        .step-desc {
+          opacity: 1;
+          color: var(--text-secondary);
+        }
       }
 
       &.done {
         .step-dot {
           background: var(--primary);
           border-color: var(--primary);
-          span { color: #fff; }
+
+          span {
+            color: #fff;
+          }
         }
-        .step-title { color: var(--primary); }
+
+        .step-title {
+          color: var(--primary);
+        }
       }
     }
 
     .step-line {
-      flex: 1; height: 2px; background: var(--glass-border);
-      margin: 0 8px; border-radius: 1px;
+      flex: 1;
+      height: 2px;
+      background: var(--glass-border);
+      margin: 0 8px;
+      border-radius: 1px;
       transition: background 0.4s ease;
-      &.active { background: var(--primary); }
+
+      &.active {
+        background: var(--primary);
+      }
     }
   }
 
@@ -845,7 +950,10 @@ onMounted(async () => {
     &::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0; height: 1px;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
     }
 
@@ -855,27 +963,58 @@ onMounted(async () => {
     }
 
     .zone-header {
-      display: flex; align-items: center; gap: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
       padding: 20px 24px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
       .zone-badge {
-        width: 42px; height: 42px; border-radius: 12px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         background: rgba(16, 185, 129, 0.15);
         border: 1px solid rgba(16, 185, 129, 0.3);
-        display: flex; align-items: center; justify-content: center;
-        color: var(--primary); flex-shrink: 0;
-        &.result-badge { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: var(--blue); }
-        &.report-badge { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: var(--purple); }
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        flex-shrink: 0;
+
+        &.result-badge {
+          background: rgba(59, 130, 246, 0.15);
+          border-color: rgba(59, 130, 246, 0.3);
+          color: var(--blue);
+        }
+
+        &.report-badge {
+          background: rgba(139, 92, 246, 0.15);
+          border-color: rgba(139, 92, 246, 0.3);
+          color: var(--purple);
+        }
       }
 
       .zone-title-group {
         flex: 1;
-        .zone-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0; }
-        .zone-subtitle { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .zone-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin: 0;
+        }
+
+        .zone-subtitle {
+          font-size: 12px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
       }
 
-      .zone-status { flex-shrink: 0; }
+      .zone-status {
+        flex-shrink: 0;
+      }
     }
 
     .zone-body {
@@ -883,43 +1022,87 @@ onMounted(async () => {
     }
   }
 
-  .empty-zone, .result-zone, .report-zone {
+  .empty-zone,
+  .result-zone,
+  .report-zone {
     margin-bottom: 20px;
   }
 
   // ========== 患者挂号区 ==========
   .patient-brief {
-    display: flex; gap: 14px; padding: 14px 16px;
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
     background: rgba(16, 185, 129, 0.06);
     border: 1px solid rgba(16, 185, 129, 0.15);
     border-radius: var(--radius-lg);
     margin-bottom: 16px;
 
     .brief-avatar {
-      width: 44px; height: 44px; border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
       border: 1px solid rgba(16, 185, 129, 0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 18px; color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--primary);
       flex-shrink: 0;
     }
 
     .brief-info {
-      flex: 1; min-width: 0;
+      flex: 1;
+      min-width: 0;
+
       .brief-name {
-        font-size: 16px; font-weight: 700; color: var(--text-primary);
-        display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+
         .brief-gender {
-          font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
-          &.male { background: rgba(59, 130, 246, 0.2); color: #60A5FA; }
-          &.female { background: rgba(236, 72, 153, 0.2); color: #F472B6; }
+          font-size: 11px;
+          padding: 2px 8px;
+          border-radius: 10px;
+          font-weight: 600;
+
+          &.male {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+          }
+
+          &.female {
+            background: rgba(236, 72, 153, 0.2);
+            color: #F472B6;
+          }
         }
-        .brief-age { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+
+        .brief-age {
+          font-size: 13px;
+          color: var(--text-secondary);
+          font-weight: 400;
+        }
       }
-      .brief-no { font-size: 12px; color: var(--text-muted); font-family: 'Courier New', monospace; }
+
+      .brief-no {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-family: 'Courier New', monospace;
+      }
+
       .brief-history {
-        font-size: 12px; color: var(--text-secondary);
-        margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }
@@ -929,37 +1112,128 @@ onMounted(async () => {
     margin-bottom: 4px;
   }
 
+  .upload-inner {
+    width: 100%;
+  }
+
+  .diagnose-btn {
+    height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: var(--radius-md) !important;
+    background: linear-gradient(135deg, var(--primary), #059669) !important;
+    border: none !important;
+    letter-spacing: 1px;
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4) !important;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+
   .glass-upload-area {
-    width: 100%; min-height: 200px;
+    width: 100%;
+    min-height: 200px;
     background: rgba(15, 23, 42, 0.3);
     border: 2px dashed var(--glass-border);
     border-radius: var(--radius-lg);
-    transition: all 0.3s ease; overflow: hidden;
-    &:hover { border-color: var(--glass-border-hover); background: rgba(15, 23, 42, 0.5); }
-    &.has-file { border-style: solid; border-color: var(--primary); }
-    :deep(.el-upload) { width: 100%; }
-    :deep(.el-upload-dragger) { background: transparent; border: none; border-radius: var(--radius-lg); padding: 0; }
+    transition: all 0.3s ease;
+    overflow: hidden;
+
+    &:hover {
+      border-color: var(--glass-border-hover);
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    &.has-file {
+      border-style: solid;
+      border-color: var(--primary);
+    }
+
+    :deep(.el-upload) {
+      width: 100%;
+    }
+
+    :deep(.el-upload-dragger) {
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: 0;
+    }
   }
 
   .upload-placeholder {
-    display: flex; flex-direction: column; align-items: center; padding: 30px 20px;
-    .upload-icon { color: var(--text-muted); margin-bottom: 10px; opacity: 0.6; }
-    .upload-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 4px; }
-    .upload-hint { font-size: 13px; color: var(--text-muted); em { color: var(--primary); font-style: normal; font-weight: 500; } }
-    .upload-formats { font-size: 12px; color: var(--text-muted); margin-top: 10px; opacity: 0.7; }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+
+    .upload-icon {
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      opacity: 0.6;
+    }
+
+    .upload-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .upload-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+
+      em {
+        color: var(--primary);
+        font-style: normal;
+        font-weight: 500;
+      }
+    }
+
+    .upload-formats {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      opacity: 0.7;
+    }
   }
 
   .upload-preview {
     position: relative;
-    img { width: 100%; height: 200px; object-fit: contain; display: block; }
-    .preview-overlay {
-      position: absolute; inset: 0;
-      background: rgba(15, 23, 42, 0.75);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-      opacity: 0; transition: opacity 0.3s ease; cursor: pointer; color: var(--text-primary);
-      span { font-size: 12px; }
+
+    img {
+      width: 100%;
+      height: 200px;
+      object-fit: contain;
+      display: block;
     }
-    &:hover .preview-overlay { opacity: 1; }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+      color: var(--text-primary);
+
+      span {
+        font-size: 12px;
+      }
+    }
+
+    &:hover .preview-overlay {
+      opacity: 1;
+    }
   }
 
   // ========== 诊断结果区 ==========
@@ -971,44 +1245,121 @@ onMounted(async () => {
   }
 
   .result-images {
-    display: flex; flex-direction: column; gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
     .image-box {
-      .image-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600; }
+      .image-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
       .preview-img-wrapper {
-        width: 100%; height: 160px; border-radius: var(--radius-md);
-        background: rgba(15, 23, 42, 0.3); border: 1px solid var(--glass-border);
-        display: flex; align-items: center; justify-content: center; overflow: hidden;
-        &.has-image { background: rgba(15, 23, 42, 0.5); }
-        .preview-img { width: 100%; height: 100%; }
-        .image-placeholder, .image-error {
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 4px; color: var(--text-muted); font-size: 11px;
+        width: 100%;
+        height: 160px;
+        border-radius: var(--radius-md);
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+
+        &.has-image {
+          background: rgba(15, 23, 42, 0.5);
         }
-        .image-error { color: var(--orange); }
+
+        .preview-img {
+          width: 100%;
+          height: 100%;
+        }
+
+        .image-placeholder,
+        .image-error {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          color: var(--text-muted);
+          font-size: 11px;
+        }
+
+        .image-error {
+          color: var(--orange);
+        }
       }
     }
   }
 
   .result-hero {
-    display: flex; align-items: center; gap: 16px;
-    padding: 18px 20px; border-radius: var(--radius-lg);
-    margin-bottom: 16px; text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+    text-align: center;
     border: 2px solid;
-    &.normal { background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.05)); border-color: rgba(16, 185, 129, 0.3); }
-    &.pneumonia { background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.05)); border-color: rgba(245, 158, 11, 0.3); }
-    &.tuberculosis { background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.05)); border-color: rgba(139, 92, 246, 0.3); }
 
-    .result-hero-icon { font-size: 40px; flex-shrink: 0; }
-    &.normal .result-hero-icon { color: var(--primary); }
-    &.pneumonia .result-hero-icon { color: var(--orange); }
-    &.tuberculosis .result-hero-icon { color: var(--purple); }
+    &.normal {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.05));
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    &.pneumonia {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.05));
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    &.tuberculosis {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.05));
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .result-hero-icon {
+      font-size: 40px;
+      flex-shrink: 0;
+    }
+
+    &.normal .result-hero-icon {
+      color: var(--primary);
+    }
+
+    &.pneumonia .result-hero-icon {
+      color: var(--orange);
+    }
+
+    &.tuberculosis .result-hero-icon {
+      color: var(--purple);
+    }
 
     .result-hero-text {
-      .result-hero-label { font-size: 20px; font-weight: 700; }
-      &.normal .result-hero-label { color: var(--primary); }
-      &.pneumonia .result-hero-label { color: var(--orange); }
-      &.tuberculosis .result-hero-label { color: var(--purple); }
-      .result-hero-conf { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+      .result-hero-label {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .result-hero-conf {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 3px;
+      }
+    }
+
+    &.normal .result-hero-label {
+      color: var(--primary);
+    }
+
+    &.pneumonia .result-hero-label {
+      color: var(--orange);
+    }
+
+    &.tuberculosis .result-hero-label {
+      color: var(--purple);
     }
   }
 
@@ -1064,27 +1415,78 @@ onMounted(async () => {
   }
 
   .prob-section {
-    display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+
     .prob-item {
       .prob-header {
-        display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
-        .prob-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-        .prob-label { font-size: 12px; color: var(--text-secondary); flex: 1; }
-        .prob-value { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 5px;
+
+        .prob-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .prob-label {
+          font-size: 12px;
+          color: var(--text-secondary);
+          flex: 1;
+        }
+
+        .prob-value {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-primary);
+        }
       }
+
       .prob-bar {
-        height: 5px; background: rgba(255, 255, 255, 0.05); border-radius: 3px; overflow: hidden;
-        .prob-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+        height: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        overflow: hidden;
+
+        .prob-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 0.6s ease;
+        }
       }
     }
   }
 
   .result-meta {
-    display: flex; gap: 16px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    gap: 16px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+
     .meta-item {
-      display: flex; align-items: center; gap: 6px;
-      .meta-label { font-size: 11px; color: var(--text-muted); }
-      .meta-value { font-size: 12px; color: var(--text-secondary); font-weight: 500; &.mono { font-family: 'Courier New', monospace; } }
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .meta-label {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .meta-value {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+
+        &.mono {
+          font-family: 'Courier New', monospace;
+        }
+      }
     }
   }
 
@@ -1096,34 +1498,58 @@ onMounted(async () => {
     padding: 16px;
     display: flex;
     flex-direction: column;
-    .action-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
-    .action-buttons { 
-      display: flex; 
-      flex-direction: column; 
+
+    .action-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
       gap: 8px;
       width: 100%;
+
       .action-btn {
-        width: 100%; 
-        height: 38px; 
-        border-radius: var(--radius-md); 
-        font-size: 13px; 
+        width: 100%;
+        height: 38px;
+        border-radius: var(--radius-md) !important;
+        font-size: 13px;
         font-weight: 500;
         padding: 0;
         margin: 0;
         box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        &.confirm { background: linear-gradient(135deg, var(--primary), #059669); border: none; }
-        &.revise { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--orange); }
-        &.report { background: linear-gradient(135deg, var(--purple), #7C3AED); border: none; }
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        &.confirm {
+          background: linear-gradient(135deg, var(--primary), #059669) !important;
+          border: none !important;
+          color: #fff !important;
+        }
+
+        &.revise {
+          background: rgba(245, 158, 11, 0.15) !important;
+          border: 1px solid rgba(245, 158, 11, 0.3) !important;
+          color: var(--orange) !important;
+        }
+
+        &.report {
+          background: linear-gradient(135deg, var(--purple), #7C3AED) !important;
+          border: none !important;
+          color: #fff !important;
+        }
       }
     }
-    .action-note { 
-      font-size: 10px; 
-      color: var(--text-muted); 
-      text-align: center; 
-      margin-top: 12px; 
+
+    .action-note {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 12px;
       line-height: 1.5;
       padding: 0 4px;
     }
@@ -1131,22 +1557,47 @@ onMounted(async () => {
 
   // ========== 空状态 ==========
   .empty-zone .empty-state {
-    text-align: center; padding: 60px 20px;
+    text-align: center;
+    padding: 60px 20px;
+
     .empty-icon {
-      width: 80px; height: 80px; margin: 0 auto 20px;
-      background: rgba(255, 255, 255, 0.03); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; color: var(--text-muted);
-      svg { width: 40px; height: 40px; }
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+
+      svg {
+        width: 40px;
+        height: 40px;
+      }
     }
-    h3 { font-size: 18px; color: var(--text-secondary); font-weight: 600; margin-bottom: 8px; }
-    p { font-size: 14px; color: var(--text-muted); }
+
+    h3 {
+      font-size: 18px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
   }
 
   // ========== 诊断报告区 ==========
   .report-zone {
     margin-bottom: 20px;
 
-    .report-toolbar { display: flex; gap: 8px; }
+    .report-toolbar {
+      display: flex;
+      gap: 8px;
+    }
   }
 
   .report-content-wrapper {
@@ -1155,7 +1606,14 @@ onMounted(async () => {
       padding-bottom: 16px;
       margin-bottom: 20px;
       border-bottom: 2px solid var(--glass-border);
-      .report-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0; letter-spacing: 2px; }
+
+      .report-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        letter-spacing: 2px;
+      }
     }
 
     .report-body {
@@ -1163,6 +1621,7 @@ onMounted(async () => {
 
       .report-text-content {
         flex: 1;
+
         .report-pre {
           font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
           font-size: 13px;
@@ -1180,35 +1639,73 @@ onMounted(async () => {
     }
 
     .report-footer {
-      text-align: center; padding-top: 16px;
+      text-align: center;
+      padding-top: 16px;
       border-top: 1px solid var(--glass-border);
-      color: var(--text-muted); font-size: 12px;
-      .report-footer-item { margin-bottom: 3px; }
+      color: var(--text-muted);
+      font-size: 12px;
+
+      .report-footer-item {
+        margin-bottom: 3px;
+      }
     }
   }
 
   // ========== 响应式 ==========
   @media (max-width: 1200px) {
-    .result-layout { grid-template-columns: 220px 1fr 180px; gap: 12px; }
+    .result-layout {
+      grid-template-columns: 220px 1fr 180px;
+      gap: 12px;
+    }
   }
 
   @media (max-width: 1024px) {
-    .result-layout { grid-template-columns: 1fr 1fr; }
-    .result-actions-panel { grid-column: 1 / -1;
-      .action-buttons { flex-direction: row; }
+    .result-layout {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .result-actions-panel {
+      grid-column: 1 / -1;
+
+      .action-buttons {
+        flex-direction: row;
+      }
     }
   }
 
   @media (max-width: 768px) {
-    .flow-steps { flex-wrap: wrap; padding: 16px; gap: 8px;
-      .step-line { display: none; }
-      .step { flex: 1; min-width: 140px;
-        .step-info { .step-desc { display: none; } }
+    .flow-steps {
+      flex-wrap: wrap;
+      padding: 16px;
+      gap: 8px;
+
+      .step-line {
+        display: none;
+      }
+
+      .step {
+        flex: 1;
+        min-width: 140px;
+
+        .step-info {
+          .step-desc {
+            display: none;
+          }
+        }
       }
     }
-    .zone-grid { grid-template-columns: 1fr; }
-    .result-layout { grid-template-columns: 1fr; }
-    .result-actions-panel .action-buttons { flex-direction: column; }
+
+    .zone-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .result-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .result-actions-panel .action-buttons {
+      flex-direction: column;
+    }
   }
 }
 </style>

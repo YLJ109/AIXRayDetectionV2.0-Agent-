@@ -43,8 +43,9 @@
           <div class="form-section">
             <div class="section-title">主要症状 <span class="section-hint">（可多选）</span></div>
             <div class="symptom-grid">
+              <!-- 预设症状 -->
               <div
-                v-for="symptom in symptomOptions"
+                v-for="symptom in symptomOptions.filter(s => s.id !== 'other')"
                 :key="symptom.id"
                 class="symptom-item"
                 :class="{ active: form.symptoms.includes(symptom.id) }"
@@ -54,6 +55,26 @@
                   <span>{{ symptom.icon }}</span>
                 </div>
                 <span class="symptom-name">{{ symptom.label }}</span>
+              </div>
+              <!-- 已添加的自定义"其他"症状（高亮，名字同步） -->
+              <div
+                v-for="id in otherSymptomIds"
+                :key="id"
+                class="symptom-item"
+                :class="{ active: form.symptoms.includes(id) }"
+                @click="toggleSymptom(id)"
+              >
+                <div class="symptom-icon" style="background: rgba(16, 185, 129, 0.2);">
+                  <span>{{ getSymptomDetail(id).name ? getSymptomDetail(id).name.charAt(0) : '➕' }}</span>
+                </div>
+                <span class="symptom-name">{{ getSymptomDetail(id).name || '其他症状' }}</span>
+              </div>
+              <!-- 添加"其他"症状按钮 -->
+              <div class="symptom-item add-other-btn" @click="addOtherSymptom">
+                <div class="symptom-icon" style="background: rgba(16, 185, 129, 0.15);">
+                  <span>➕</span>
+                </div>
+                <span class="symptom-name">其他</span>
               </div>
             </div>
           </div>
@@ -66,10 +87,27 @@
                 <template v-if="getSymptomById(symptomId)">
                   <div class="symptom-detail-header">
                     <span class="symptom-detail-icon">{{ getSymptomById(symptomId).icon }}</span>
-                    <span class="symptom-detail-title">{{ getSymptomById(symptomId).label }}</span>
-                    <span class="symptom-detail-desc">{{ getSymptomById(symptomId).description }}</span>
+                    <span class="symptom-detail-title">{{ isOtherSymptom(symptomId) ? (getSymptomDetail(symptomId).name || '其他症状') : getSymptomById(symptomId).label }}</span>
+                    <span class="symptom-detail-desc">{{ isOtherSymptom(symptomId) ? '自定义症状' : getSymptomById(symptomId).description }}</span>
+                    <!-- "其他"症状可删除 -->
+                    <el-button v-if="isOtherSymptom(symptomId)" class="remove-other-btn" size="small" @click="removeOtherSymptom(symptomId)">
+                      <el-icon><Close /></el-icon>
+                    </el-button>
                   </div>
-                  
+
+                  <!-- "其他"症状名称输入 -->
+                  <div class="symptom-detail-row" v-if="isOtherSymptom(symptomId)">
+                    <label class="detail-label">症状名称：</label>
+                    <el-input
+                      v-model="getSymptomDetail(symptomId).name"
+                      placeholder="请输入其他症状名称"
+                      maxlength="30"
+                      show-word-limit
+                      size="small"
+                      class="other-detail-input"
+                    />
+                  </div>
+
                   <!-- 严重程度 -->
                   <div class="symptom-detail-row">
                     <label class="detail-label">严重程度：</label>
@@ -79,25 +117,67 @@
                       <el-radio-button value="severe">严重</el-radio-button>
                     </el-radio-group>
                   </div>
-                  
-                  <!-- 具体表现 -->
-                  <div class="symptom-detail-row" v-if="getSymptomById(symptomId).details">
+
+                  <!-- 具体表现（有预设选项的症状） -->
+                  <div class="symptom-detail-row" v-if="getSymptomById(symptomId).details && getSymptomById(symptomId).details.length > 0">
                     <label class="detail-label">具体表现：</label>
-                    <el-checkbox-group v-model="getSymptomDetail(symptomId).details" size="small">
-                      <el-checkbox v-for="detail in getSymptomById(symptomId).details" :key="detail" :value="detail">
-                        {{ detail }}
-                      </el-checkbox>
-                    </el-checkbox-group>
+                    <div class="detail-checkbox-area">
+                      <el-checkbox-group v-model="getSymptomDetail(symptomId).details" size="small">
+                        <el-checkbox v-for="detail in getSymptomById(symptomId).details" :key="detail" :value="detail">
+                          {{ detail }}
+                        </el-checkbox>
+                        <el-checkbox value="__other__">其他</el-checkbox>
+                      </el-checkbox-group>
+                      <el-input
+                        v-if="getSymptomDetail(symptomId).details.includes('__other__')"
+                        v-model="getSymptomDetail(symptomId).detailsOther"
+                        placeholder="请输入其他具体表现"
+                        size="small"
+                        class="other-detail-input"
+                      />
+                    </div>
                   </div>
-                  
-                  <!-- 触发因素 -->
-                  <div class="symptom-detail-row" v-if="getSymptomById(symptomId).triggers">
+
+                  <!-- 具体表现（"其他"症状，无预设选项，直接输入） -->
+                  <div class="symptom-detail-row" v-else>
+                    <label class="detail-label">具体表现：</label>
+                    <el-input
+                      v-model="getSymptomDetail(symptomId).detailsOther"
+                      placeholder="请描述该症状的具体表现"
+                      size="small"
+                      class="other-detail-input"
+                    />
+                  </div>
+
+                  <!-- 触发因素（有预设选项的症状） -->
+                  <div class="symptom-detail-row" v-if="getSymptomById(symptomId).triggers && getSymptomById(symptomId).triggers.length > 0">
                     <label class="detail-label">触发因素：</label>
-                    <el-checkbox-group v-model="getSymptomDetail(symptomId).triggers" size="small">
-                      <el-checkbox v-for="trigger in getSymptomById(symptomId).triggers" :key="trigger" :value="trigger">
-                        {{ trigger }}
-                      </el-checkbox>
-                    </el-checkbox-group>
+                    <div class="detail-checkbox-area">
+                      <el-checkbox-group v-model="getSymptomDetail(symptomId).triggers" size="small">
+                        <el-checkbox v-for="trigger in getSymptomById(symptomId).triggers" :key="trigger" :value="trigger">
+                          {{ trigger }}
+                        </el-checkbox>
+                        <el-checkbox value="__other__">其他</el-checkbox>
+                      </el-checkbox-group>
+                      <el-input
+                        v-if="getSymptomDetail(symptomId).triggers.includes('__other__')"
+                        v-model="getSymptomDetail(symptomId).triggersOther"
+                        placeholder="请输入其他触发因素"
+                        size="small"
+                        class="other-detail-input"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 触发因素（"其他"症状，无预设选项，直接输入） -->
+                  <div class="symptom-detail-row" v-else>
+                    <label class="detail-label">触发因素：</label>
+                    <el-input
+                      v-model="getSymptomDetail(symptomId).triggersOther"
+                      placeholder="请描述该症状的触发因素"
+                      size="small"
+                      class="other-detail-input"
+                    />
                   </div>
                 </template>
               </div>
@@ -298,9 +378,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { llmApi } from '@/api'
 import { ElMessage } from 'element-plus'
+import { Close } from '@element-plus/icons-vue'
 
 const formRef = ref(null)
 const analyzing = ref(false)
@@ -315,6 +396,9 @@ const form = reactive({
   durationDetail: '',  // 详细时间描述
   medical_history: ''
 })
+
+// 所有自定义"其他"症状的ID列表
+const otherSymptomIds = computed(() => form.symptoms.filter(id => id.startsWith('other_')))
 
 const symptomOptions = [
   { 
@@ -470,14 +554,23 @@ const symptomOptions = [
     details: ['轻度头晕', '眩晕感', '站立不稳', '眼前发黑', '伴恶心'],
     triggers: ['血压异常', '贫血', '颈椎问题', '低血糖', '体位改变']
   },
-  { 
-    id: 'palpitations', 
-    label: '心悸', 
-    icon: '💓', 
+  {
+    id: 'palpitations',
+    label: '心悸',
+    icon: '💓',
     bgColor: 'rgba(239, 68, 68, 0.2)',
     description: '心跳加快、心慌的感觉',
     details: ['轻微心慌', '心跳加速', '心律不齐感', '胸闷心悸', '夜间明显'],
     triggers: ['剧烈运动', '情绪激动', '发热时', '贫血', '甲状腺疾病']
+  },
+  {
+    id: 'other',
+    label: '其他',
+    icon: '➕',
+    bgColor: 'rgba(156, 163, 175, 0.15)',
+    description: '其他未列出的症状',
+    details: [],
+    triggers: []
   }
 ]
 
@@ -511,8 +604,10 @@ function toggleSymptom(id) {
   const idx = form.symptoms.indexOf(id)
   if (idx > -1) {
     form.symptoms.splice(idx, 1)
-    // 移除对应的详情数据
-    delete form.symptomDetails[id]
+    // 预设症状取消时移除详情数据；自定义症状保留数据以便恢复
+    if (!isOtherSymptom(id)) {
+      delete form.symptomDetails[id]
+    }
   } else {
     form.symptoms.push(id)
     // 初始化详情数据
@@ -520,15 +615,62 @@ function toggleSymptom(id) {
       form.symptomDetails[id] = {
         severity: 'moderate',
         details: [],
-        triggers: []
+        detailsOther: '',
+        triggers: [],
+        triggersOther: '',
+        ...(isOtherSymptom(id) ? { name: '' } : {})
       }
     }
   }
 }
 
+// 判断是否为"其他"自定义症状
+function isOtherSymptom(id) {
+  return id.startsWith('other_')
+}
+
+// 添加一个"其他"自定义症状
+let otherCounter = 0
+function addOtherSymptom() {
+  otherCounter++
+  const id = `other_${otherCounter}`
+  form.symptoms.push(id)
+  form.symptomDetails[id] = {
+    severity: 'moderate',
+    name: '',
+    details: [],
+    detailsOther: '',
+    triggers: [],
+    triggersOther: ''
+  }
+}
+
+// 删除一个"其他"自定义症状
+function removeOtherSymptom(id) {
+  const idx = form.symptoms.indexOf(id)
+  if (idx > -1) {
+    form.symptoms.splice(idx, 1)
+    delete form.symptomDetails[id]
+  }
+}
+
 // 根据 ID 获取症状信息
 function getSymptomById(id) {
-  return symptomOptions.find(s => s.id === id)
+  const opt = symptomOptions.find(s => s.id === id)
+  if (opt) return opt
+  // 自定义"其他"症状返回虚拟对象
+  if (isOtherSymptom(id)) {
+    return {
+      id,
+      label: form.symptomDetails[id]?.name || '其他症状',
+      icon: '➕',
+      bgColor: 'rgba(156, 163, 175, 0.15)',
+      description: '自定义症状',
+      details: [],
+      triggers: []
+    }
+  }
+  return null
 }
 
 // 获取或初始化症状详情
@@ -537,8 +679,17 @@ function getSymptomDetail(id) {
     form.symptomDetails[id] = {
       severity: 'moderate',
       details: [],
-      triggers: []
+      detailsOther: '',
+      triggers: [],
+      triggersOther: ''
     }
+  }
+  // 兼容旧数据，确保新字段存在
+  if (form.symptomDetails[id].detailsOther === undefined) {
+    form.symptomDetails[id].detailsOther = ''
+  }
+  if (form.symptomDetails[id].triggersOther === undefined) {
+    form.symptomDetails[id].triggersOther = ''
   }
   return form.symptomDetails[id]
 }
@@ -548,24 +699,55 @@ async function handleTriage() {
     ElMessage.warning('请至少选择一个症状')
     return
   }
+  // 验证"其他"症状是否填写了名称
+  for (const id of form.symptoms) {
+    if (isOtherSymptom(id) && !getSymptomDetail(id).name?.trim()) {
+      ElMessage.warning('请填写其他症状的名称')
+      return
+    }
+  }
 
   analyzing.value = true
 
   // 构建详细的症状描述
   const symptomDescriptions = form.symptoms.map(id => {
-    const opt = symptomOptions.find(s => s.id === id)
+    const opt = getSymptomById(id)
     const detail = form.symptomDetails[id] || {}
     const severityMap = { mild: '轻微', moderate: '中度', severe: '严重' }
-    
-    let desc = opt ? opt.label : id
+
+    let desc = ''
+    // 处理"其他"症状名称
+    if (isOtherSymptom(id)) {
+      desc = detail.name || '其他症状'
+    } else {
+      desc = opt ? opt.label : id
+    }
     if (detail.severity) {
       desc += `（${severityMap[detail.severity] || '中度'}）`
     }
+    // 具体表现：过滤掉标记值，加入自定义内容
     if (detail.details && detail.details.length > 0) {
-      desc += `，具体表现：${detail.details.join('、')}`
+      const filteredDetails = detail.details.filter(d => d !== '__other__')
+      const otherDetail = detail.details.includes('__other__') && detail.detailsOther ? detail.detailsOther : ''
+      const allDetails = [...filteredDetails, otherDetail].filter(Boolean)
+      if (allDetails.length > 0) {
+        desc += `，具体表现：${allDetails.join('、')}`
+      }
+    } else if (detail.detailsOther) {
+      // "其他"症状没有预设选项的情况
+      desc += `，具体表现：${detail.detailsOther}`
     }
+    // 触发因素：过滤掉标记值，加入自定义内容
     if (detail.triggers && detail.triggers.length > 0) {
-      desc += `，触发因素：${detail.triggers.join('、')}`
+      const filteredTriggers = detail.triggers.filter(t => t !== '__other__')
+      const otherTrigger = detail.triggers.includes('__other__') && detail.triggersOther ? detail.triggersOther : ''
+      const allTriggers = [...filteredTriggers, otherTrigger].filter(Boolean)
+      if (allTriggers.length > 0) {
+        desc += `，触发因素：${allTriggers.join('、')}`
+      }
+    } else if (detail.triggersOther) {
+      // "其他"症状没有预设选项的情况
+      desc += `，触发因素：${detail.triggersOther}`
     }
     return desc
   })
@@ -766,6 +948,32 @@ function getAdviceIcon(title) {
     transition: all 0.3s ease;
     font-weight: 500;
   }
+
+  // "添加其他"按钮样式
+  &.add-other-btn {
+    border-style: dashed;
+
+    .symptom-name {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    &:hover {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+
+      .symptom-icon {
+        background: rgba(16, 185, 129, 0.3);
+      }
+    }
+
+    &:active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.12));
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary), 0 4px 12px rgba(16, 185, 129, 0.3);
+      transform: scale(0.95);
+    }
+  }
 }
 
 // 症状详情列表
@@ -773,6 +981,48 @@ function getAdviceIcon(title) {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+// "其他"详情输入框
+.other-detail-input {
+  max-width: 320px;
+
+  :deep(.el-input__wrapper) {
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    border-color: var(--glass-border) !important;
+    box-shadow: none !important;
+
+    &:hover {
+      border-color: var(--primary) !important;
+    }
+
+    &.is-focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 1px var(--primary) inset !important;
+    }
+  }
+
+  :deep(.el-input__inner) {
+    color: var(--text-primary) !important;
+    font-size: 13px;
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+
+  :deep(.el-input__count-inner) {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+  }
+}
+
+// 具体表现/触发因素的复选框区域
+.detail-checkbox-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .symptom-detail-card {
@@ -834,6 +1084,32 @@ function getAdviceIcon(title) {
     margin-left: auto;
     max-width: 200px;
     text-align: right;
+  }
+
+  .remove-other-btn {
+    margin-left: 4px;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: rgba(239, 68, 68, 0.12) !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+    color: #EF4444 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    .el-icon {
+      font-size: 14px;
+      margin: 0 !important;
+    }
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.25) !important;
+      border-color: rgba(239, 68, 68, 0.5) !important;
+    }
   }
 }
 
@@ -1054,8 +1330,8 @@ function getAdviceIcon(title) {
 
 // 结果行布局
 .result-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 
   &:not(:last-child) {
@@ -1261,8 +1537,8 @@ function getAdviceIcon(title) {
 
   &.disease-card,
   &.advice-card {
-    max-height: 420px;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
@@ -1481,7 +1757,6 @@ function getAdviceIcon(title) {
 // 响应式布局
 @media (max-width: 1200px) {
   .result-row {
-    grid-template-columns: 1fr;
     gap: 16px;
   }
 }

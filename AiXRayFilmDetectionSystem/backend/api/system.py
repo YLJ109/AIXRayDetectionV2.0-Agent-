@@ -523,7 +523,7 @@ def upload_model():
     try:
         weights_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            '..', 'weights'
+            'weights'
         )
         os.makedirs(weights_dir, exist_ok=True)
         filename = secure_filename(file.filename)
@@ -555,7 +555,7 @@ def switch_model():
         from backend.services.model_service import model_service
         weights_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            '..', 'weights'
+            'weights'
         )
         filepath = os.path.join(weights_dir, filename)
         if not os.path.exists(filepath):

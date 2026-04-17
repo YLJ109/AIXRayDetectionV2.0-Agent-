@@ -6,7 +6,7 @@
         <span class="title-sep">/</span>
         <span class="title-main">AI咨询</span>
       </h1>
-      <p class="page-subtitle">基于通义千问大模型的智能医疗咨询助手</p>
+      <p class="page-subtitle">多位医疗AI专家智能体，为您提供专业咨询服务</p>
     </div>
 
     <div class="chat-layout">
@@ -14,26 +14,32 @@
       <div class="glass-card session-panel">
         <div class="session-header">
           <h3 class="card-title">会话列表</h3>
-          <el-button type="primary" size="small" @click="newSession">
-            <el-icon><Plus /></el-icon> 新建
+          <el-button type="primary" size="small" @click="showExpertPicker = true">
+            <el-icon>
+              <Plus />
+            </el-icon> 新建
           </el-button>
         </div>
         <div class="session-list">
-          <div
-            v-for="session in sessions"
-            :key="session.id"
-            class="session-item"
-            :class="{ active: session.id === activeSessionId }"
-            @click="switchSession(session.id)"
-          >
-            <div class="session-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-              </svg>
-            </div>
+          <div v-if="sessions.length === 0" class="session-empty">
+            <p>暂无会话</p>
+            <p class="hint">点击「新建」开始咨询</p>
+          </div>
+          <div v-for="session in sessions" :key="session.id" class="session-item"
+            :class="{ active: session.id === activeSessionId }" @click="switchSession(session.id)">
+            <div class="session-icon" :style="{ background: getExpert(session.expertId)?.avatarBg }"
+              v-html="expertIconSvg(getExpert(session.expertId)?.icon, 18)"></div>
             <div class="session-info">
               <div class="session-title">{{ session.title }}</div>
-              <div class="session-time">{{ session.time }}</div>
+              <div class="session-meta">
+                <span class="session-expert">{{ getExpert(session.expertId)?.shortName }}</span>
+                <span class="session-time">{{ formatTime(session.time) }}</span>
+              </div>
+            </div>
+            <div class="session-delete" @click.stop="consultationStore.deleteSession(session.id)">
+              <el-icon size="14">
+                <Close />
+              </el-icon>
             </div>
           </div>
         </div>
@@ -41,172 +47,371 @@
 
       <!-- 右侧聊天区域 -->
       <div class="glass-card chat-panel">
-        <!-- 聊天头部 -->
-        <div class="chat-header">
-          <div class="chat-bot-info">
-            <div class="bot-avatar">
-              <svg viewBox="0 0 24 24" fill="white" width="20" height="20">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
-            <div>
-              <div class="bot-name">智诊AI助手</div>
-              <div class="bot-status">
-                <span class="status-dot online"></span> 在线 · 基于通义千问
+        <!-- 无会话时的空状态 -->
+        <template v-if="!activeSessionId">
+          <div class="chat-empty-state">
+            <div class="empty-icon-big" v-html="expertIconSvg('robot', 64)"></div>
+            <h3>选择一位AI专家开始咨询</h3>
+            <p>每位专家拥有不同的专业领域，为您解答对应的医疗问题</p>
+            <div class="expert-quick-grid">
+              <div v-for="expert in experts" :key="expert.id" class="expert-quick-card"
+                @click="startWithExpert(expert.id)">
+                <div class="eqc-avatar" :style="{ background: expert.avatarBg }"
+                  v-html="expertIconSvg(expert.icon, 28)"></div>
+                <div class="eqc-name">{{ expert.shortName }}</div>
+                <div class="eqc-title">{{ expert.title }}</div>
               </div>
             </div>
           </div>
-          <div class="chat-actions">
-            <el-tooltip content="清空会话" placement="bottom">
-              <el-button circle size="small" @click="clearMessages">
-                <el-icon><Delete /></el-icon>
-              </el-button>
-            </el-tooltip>
-          </div>
-        </div>
+        </template>
 
-        <!-- 消息区域 -->
-        <div class="chat-messages" ref="messagesContainer">
-          <!-- 欢迎消息 -->
-          <div class="message welcome-message" v-if="messages.length === 0">
-            <div class="message-avatar bot">
-              <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
-            <div class="message-content">
-              <div class="message-bubble bot">
-                <p>您好，我是<strong>智诊AI助手</strong>，基于通义千问大模型为您提供专业的医疗咨询服务。</p>
-                <p>您可以向我咨询以下内容：</p>
-                <div class="quick-questions">
-                  <div class="quick-q" @click="sendQuickQ('肺部X光片显示异常，可能是什么疾病？')">肺部X光异常解读</div>
-                  <div class="quick-q" @click="sendQuickQ('肺炎和肺结核的症状区别是什么？')">肺炎vs肺结核区别</div>
-                  <div class="quick-q" @click="sendQuickQ('胸部X光检查有哪些注意事项？')">X光检查注意事项</div>
-                  <div class="quick-q" @click="sendQuickQ('肺部结节需要做哪些进一步检查？')">肺结节后续检查</div>
+        <!-- 有会话时 -->
+        <template v-else>
+          <!-- 聊天头部 -->
+          <div class="chat-header">
+            <div class="chat-bot-info">
+              <div class="bot-avatar" :style="{ background: currentExpert?.avatarBg }"
+                v-html="expertIconSvg(currentExpert?.icon, 22)">
+              </div>
+              <div>
+                <div class="bot-name">{{ currentExpert?.name }}</div>
+                <div class="bot-status">
+                  <span class="status-dot online"></span> 在线 · {{ currentExpert?.title }}
                 </div>
-                <p class="disclaimer">⚠️ AI回复仅供参考，不能替代专业医生诊断。</p>
               </div>
+            </div>
+            <div class="chat-actions">
+              <el-tooltip content="清空会话" placement="bottom">
+                <el-button circle size="small" @click="clearMessages">
+                  <el-icon>
+                    <Delete />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
             </div>
           </div>
 
-          <!-- 消息列表 -->
-          <div
-            v-for="(msg, index) in messages"
-            :key="index"
-            class="message"
-            :class="msg.role"
-          >
-            <!-- AI消息 -->
-            <template v-if="msg.role === 'assistant'">
-              <div class="message-avatar bot">
-                <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
+          <!-- 消息区域 -->
+          <div class="chat-messages" ref="messagesContainer">
+            <!-- 欢迎消息 -->
+            <div class="message welcome-message" v-if="messages.length === 0">
+              <div class="message-avatar bot" :style="{ background: currentExpert?.avatarBg }"
+                v-html="expertIconSvg(currentExpert?.icon, 20)"></div>
+              <div class="message-content">
+                <div class="message-bubble bot">
+                  <p>您好，我是<strong>{{ currentExpert?.name }}</strong>，{{ currentExpert?.welcome }}</p>
+                  <p>您可以向我咨询以下内容：</p>
+                  <div class="quick-questions">
+                    <div v-for="q in currentExpert?.quickQuestions" :key="q.text" class="quick-q"
+                      @click="sendQuickQ(q.text)">{{ q.label }}</div>
+                  </div>
+                  <p class="disclaimer">[!] AI回复仅供参考，不能替代专业医生诊断。</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 消息列表 -->
+            <div v-for="(msg, index) in messages" :key="index" class="message" :class="msg.role">
+              <template v-if="msg.role === 'assistant'">
+                <div class="message-avatar bot" :style="{ background: currentExpert?.avatarBg }"
+                  v-html="expertIconSvg(currentExpert?.icon, 20)">
+                </div>
+                <div class="message-content">
+                  <div class="message-bubble bot" v-html="formatMessage(msg.content)"></div>
+                  <div class="message-time">{{ formatMessageTime(msg.time) }}</div>
+                </div>
+              </template>
+              <template v-else>
+                <div class="message-content user-content">
+                  <div class="message-bubble user">{{ msg.content }}</div>
+                  <div class="message-time">{{ formatMessageTime(msg.time) }}</div>
+                </div>
+                <div class="message-avatar user">{{ userName.charAt(0) }}</div>
+              </template>
+            </div>
+
+            <!-- AI正在输入 -->
+            <div class="message assistant" v-if="isTyping">
+              <div class="message-avatar bot" :style="{ background: currentExpert?.avatarBg }"
+                v-html="expertIconSvg(currentExpert?.icon, 20)">
               </div>
               <div class="message-content">
-                <div class="message-bubble bot" v-html="formatMessage(msg.content)"></div>
-                <div class="message-time">{{ msg.time }}</div>
-              </div>
-            </template>
-            <!-- 用户消息 -->
-            <template v-else>
-              <div class="message-content user-content">
-                <div class="message-bubble user">{{ msg.content }}</div>
-                <div class="message-time">{{ msg.time }}</div>
-              </div>
-              <div class="message-avatar user">{{ userName.charAt(0) }}</div>
-            </template>
-          </div>
-
-          <!-- AI正在输入 -->
-          <div class="message assistant" v-if="isTyping">
-            <div class="message-avatar bot">
-              <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
-            <div class="message-content">
-              <div class="message-bubble bot typing-bubble">
-                <div class="typing-indicator">
-                  <span></span><span></span><span></span>
+                <div class="message-bubble bot typing-bubble">
+                  <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- 输入区域 -->
-        <div class="chat-input-area">
-          <el-input
-            v-model="inputText"
-            type="textarea"
-            :autosize="{ minRows: 1, maxRows: 4 }"
-            placeholder="输入您的医疗咨询问题..."
-            @keydown.enter.exact="handleSend"
-            :disabled="isTyping"
-            class="chat-input"
-          />
-          <el-button
-            type="primary"
-            class="send-btn"
-            @click="handleSend"
-            :disabled="!inputText.trim() || isTyping"
-            :loading="isTyping"
-          >
-            <el-icon v-if="!isTyping"><Promotion /></el-icon>
-          </el-button>
-        </div>
+          <!-- 输入区域 -->
+          <div class="chat-input-area">
+            <el-input v-model="inputText" type="textarea" :autosize="{ minRows: 1, maxRows: 4 }"
+              placeholder="输入您的医疗咨询问题..." @keydown.enter.exact="handleSend" :disabled="isTyping" class="chat-input" />
+            <el-button type="primary" class="send-btn" @click="handleSend" :disabled="!inputText.trim() || isTyping"
+              :loading="isTyping">
+              <el-icon v-if="!isTyping">
+                <Promotion />
+              </el-icon>
+            </el-button>
+          </div>
+        </template>
       </div>
     </div>
+
+    <!-- 新建会话 - 选择专家弹窗 -->
+    <el-dialog v-model="showExpertPicker" title="选择AI医疗专家" width="680px" class="expert-dialog">
+      <div class="expert-grid">
+        <div v-for="expert in experts" :key="expert.id" class="expert-card" @click="startWithExpert(expert.id)">
+          <div class="ec-avatar" :style="{ background: expert.avatarBg }" v-html="expertIconSvg(expert.icon, 28)"></div>
+          <div class="ec-info">
+            <div class="ec-name">{{ expert.name }}</div>
+            <div class="ec-title">{{ expert.title }}</div>
+            <div class="ec-desc">{{ expert.description }}</div>
+            <div class="ec-tags">
+              <span v-for="tag in expert.tags" :key="tag" class="ec-tag">{{ tag }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, nextTick, computed, onBeforeUnmount, watch } from 'vue'
 import { useUserStore, useConsultationStore } from '@/stores'
 import { llmApi } from '@/api'
 import { ElMessage } from 'element-plus'
+import { Close, Delete, Plus, Promotion } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const consultationStore = useConsultationStore()
 const userName = computed(() => userStore.userName || '用户')
 
-// 使用 store 管理的状态
 const sessions = computed(() => consultationStore.sessions)
 const activeSessionId = computed(() => consultationStore.activeSessionId)
 const messages = computed(() => consultationStore.currentMessages)
 
-// 本地 UI 状态
 const inputText = ref('')
 const isTyping = ref(false)
 const messagesContainer = ref(null)
-
-// AbortController 用于取消请求
+const showExpertPicker = ref(false)
 let abortController = null
 
-const SYSTEM_PROMPT = `你是一位专业的医疗AI咨询助手——"智诊AI助手"，基于通义千问大模型，专为胸部X光影像诊断系统提供咨询服务。
-你的职责：
-1. 解答用户关于肺部疾病（正常、肺炎、肺结核等）的问题
-2. 提供胸部X光影像相关的医学知识
-3. 给出合理的就医建议和健康指导
-回答要求：
-- 语言简洁专业，使用中文
-- 适当使用 **粗体** 强调重点
-- 使用列表或表格对比时保持清晰
-- 每次回答末尾提醒：AI回复仅供参考，如有不适请及时就医
-- 不做确定性诊断，始终建议用户结合临床检查`
+// ==================== AI专家配置 ====================
+const experts = [
+  {
+    id: 'respiratory',
+    name: '李明远 · 呼吸内科专家',
+    shortName: '呼吸内科',
+    title: '主任医师 · 呼吸与危重症医学科',
+    icon: 'lungs',
+    avatarBg: 'linear-gradient(135deg, #10B981, #059669)',
+    description: '擅长呼吸系统疾病诊断与治疗，对肺炎、慢阻肺、哮喘、间质性肺病等有丰富临床经验。',
+    tags: ['肺炎', '慢阻肺', '哮喘', '呼吸衰竭'],
+    welcome: '专注于呼吸系统疾病的诊疗。无论是肺部感染、慢性气道疾病还是呼吸功能评估，我都可以为您提供专业建议。',
+    quickQuestions: [
+      { label: '肺炎治疗方案', text: '社区获得性肺炎的经验性抗感染治疗方案有哪些？' },
+      { label: '慢阻肺管理', text: '慢阻肺稳定期如何规范用药和管理？' },
+      { label: '哮喘控制', text: '支气管哮喘的阶梯治疗方案是怎样的？' },
+      { label: '呼吸困难鉴别', text: '呼吸困难的常见病因和鉴别诊断思路？' }
+    ],
+    systemPrompt: `你是一位资深呼吸内科专家"李明远"，拥有30年临床经验，主任医师职称，专长于呼吸与危重症医学。
+专业领域：肺部感染性疾病、慢性阻塞性肺疾病、支气管哮喘、间质性肺病、呼吸衰竭、肺部肿瘤的内科治疗。
+回答风格：
+- 结合最新临床指南（如GOLD指南、GINA指南等）给出循证建议
+- 注重鉴别诊断思维，给出系统性的分析思路
+- 适当引用研究数据支撑观点
+- 使用 **粗体** 强调关键药物和检查
+- 每次回答末尾提醒：以上建议仅供参考，请以临床医生面诊意见为准`
+  },
+  {
+    id: 'radiology',
+    name: '张慧敏 · 影像科专家',
+    shortName: '影像科',
+    title: '主任医师 · 医学影像中心',
+    icon: 'microscope',
+    avatarBg: 'linear-gradient(135deg, #3B82F6, #1D4ED8)',
+    description: '擅长胸部影像诊断，对X光、CT、MRI的肺部病变解读具有深厚造诣，尤其擅长早期肺癌筛查。',
+    tags: ['X光解读', 'CT诊断', '肺结节', '肺癌筛查'],
+    welcome: '专注于医学影像诊断，尤其是胸部X光和CT的解读。我可以帮助您理解影像报告、分析影像特征、评估肺结节风险。',
+    quickQuestions: [
+      { label: '肺结节评估', text: '肺部磨玻璃结节的随访策略和手术指征是什么？' },
+      { label: 'X光读片要点', text: '胸部X光片的基本读片步骤和常见漏诊原因？' },
+      { label: '肺炎影像分型', text: '大叶性肺炎、支气管肺炎和间质性肺炎的影像学鉴别要点？' },
+      { label: 'CT报告解读', text: '胸部CT报告中常见术语的含义和临床意义？' }
+    ],
+    systemPrompt: `你是一位资深影像科专家"张慧敏"，拥有25年影像诊断经验，主任医师职称，专长于胸部影像诊断和早期肺癌筛查。
+专业领域：胸部X光诊断、胸部CT解读、肺结节良恶性评估、肺癌筛查（LDCT）、感染性病变影像分型。
+回答风格：
+- 注重影像特征的精确描述（密度、形态、边缘、分布等）
+- 结合Fleischner学会指南评估肺结节
+- 给出具体的影像-病理对照分析
+- 使用 **粗体** 标注关键影像征象
+- 每次回答末尾提醒：以上建议仅供参考，请以临床医生面诊意见为准`
+  },
+  {
+    id: 'infectious',
+    name: '王建国 · 感染科专家',
+    shortName: '感染科',
+    title: '主任医师 · 感染性疾病科',
+    icon: 'virus',
+    avatarBg: 'linear-gradient(135deg, #F59E0B, #D97706)',
+    description: '擅长各类感染性疾病的诊治，对细菌、病毒、真菌感染的抗生素使用和耐药问题有深入研究。',
+    tags: ['抗感染', '抗生素', '败血症', '不明原因发热'],
+    welcome: '专注于感染性疾病的诊疗和抗生素合理使用。无论是社区感染、院内感染还是不明原因发热，我都可以帮助分析。',
+    quickQuestions: [
+      { label: '抗生素选择', text: '社区获得性肺炎的初始抗感染方案如何选择？' },
+      { label: '不明原因发热', text: '不明原因发热的诊断思路和检查策略？' },
+      { label: '耐药菌处理', text: '多重耐药菌感染的治疗策略和抗生素选择？' },
+      { label: '真菌感染', text: '侵袭性肺真菌病的高危因素和早期诊断方法？' }
+    ],
+    systemPrompt: `你是一位资深感染科专家"王建国"，拥有28年感染病诊疗经验，主任医师职称，专长于抗感染治疗和临床微生物学。
+专业领域：细菌感染与抗生素治疗、病毒性感染、真菌感染、不明原因发热、院内感染控制、抗菌药物合理使用。
+回答风格：
+- 依据药敏和PK/PD原则指导抗生素选择
+- 重视病原学诊断，强调精准抗感染
+- 引用相关指南（IDSA、中华医学会指南等）
+- 使用 **粗体** 标注关键抗生素和病原体
+- 每次回答末尾提醒：以上建议仅供参考，请以临床医生面诊意见为准`
+  },
+  {
+    id: 'tuberculosis',
+    name: '陈思远 · 结核病专家',
+    shortName: '结核病',
+    title: '主任医师 · 结核病防治中心',
+    icon: 'shield',
+    avatarBg: 'linear-gradient(135deg, #8B5CF6, #6D28D9)',
+    description: '专注结核病诊疗30年，对肺结核、耐药结核、结核性胸膜炎的诊治及预防有深厚造诣。',
+    tags: ['肺结核', '耐药结核', '结核预防', '潜伏感染'],
+    welcome: '专注于结核病的诊断、治疗和预防。我可以帮助您了解结核病的筛查策略、抗结核方案、耐药处理和预防措施。',
+    quickQuestions: [
+      { label: '肺结核诊断', text: '肺结核的诊断标准需要哪些检查来确认？' },
+      { label: '耐药结核治疗', text: '耐多药结核病的治疗方案和疗程是怎样的？' },
+      { label: '潜伏感染处理', text: '结核潜伏感染是否需要预防性治疗？方案有哪些？' },
+      { label: '结核与肺癌鉴别', text: '肺结核和肺癌在影像学上如何鉴别？' }
+    ],
+    systemPrompt: `你是一位资深结核病专家"陈思远"，拥有30年结核病诊疗经验，主任医师职称，专长于结核病的诊断和治疗。
+专业领域：肺结核诊断与治疗、耐药结核病管理、结核性胸膜炎、潜伏结核感染管理、结核病预防与控制。
+回答风格：
+- 熟悉WHO结核病指南和中国结核病防治指南
+- 注重菌阴肺结核的诊断思路
+- 关注耐药结核的个体化治疗方案
+- 使用 **粗体** 强调关键检查和治疗药物
+- 每次回答末尾提醒：以上建议仅供参考，请以临床医生面诊意见为准`
+  },
+  {
+    id: 'emergency',
+    name: '刘志强 · 急诊医学专家',
+    shortName: '急诊科',
+    title: '主任医师 · 急诊医学科',
+    icon: 'ambulance',
+    avatarBg: 'linear-gradient(135deg, #EF4444, #B91C1C)',
+    description: '擅长急危重症救治，对呼吸衰竭、大咯血、张力性气胸等胸部急症有丰富抢救经验。',
+    tags: ['呼吸衰竭', '大咯血', '气胸', '危重症'],
+    welcome: '专注于急危重症的识别和救治。当您遇到紧急症状时，我可以帮助判断严重程度和紧急处理措施。',
+    quickQuestions: [
+      { label: '呼吸衰竭处理', text: '急性呼吸衰竭的紧急评估和处理步骤是什么？' },
+      { label: '大咯血急救', text: '大咯血的紧急处理措施和注意事项？' },
+      { label: '气胸识别', text: '自发性气胸的临床表现和紧急处理？' },
+      { label: '胸痛鉴别', text: '急性胸痛的快速鉴别诊断和处理流程？' }
+    ],
+    systemPrompt: `你是一位资深急诊医学专家"刘志强"，拥有20年急危重症救治经验，主任医师职称，专长于胸部急症和呼吸危重症。
+专业领域：急性呼吸衰竭、大咯血、张力性气胸、肺栓塞、重症肺炎、急性胸痛的鉴别与处理。
+回答风格：
+- 优先判断病情危重程度，给出ABC评估思路
+- 强调时间就是生命，给出明确的优先级
+- 给出具体的急救措施和药物剂量
+- 使用 **粗体** 标注关键急救药物和时间节点
+- 每次回答末尾提醒：如遇紧急情况请立即拨打120急救电话！以上建议仅供参考。`
+  },
+  {
+    id: 'general',
+    name: '赵文博 · 全科医学专家',
+    shortName: '全科',
+    title: '主任医师 · 全科医学科',
+    icon: 'doctor',
+    avatarBg: 'linear-gradient(135deg, #06B6D4, #0891B2)',
+    description: '全科医学视野宽广，擅长常见病多发病的诊疗，健康管理和疾病预防，提供综合性医疗建议。',
+    tags: ['健康管理', '常见病', '预防保健', '慢病管理'],
+    welcome: '作为全科医学专家，我可以为您提供全面的健康咨询，涵盖常见疾病诊疗、健康管理、疾病预防和慢病管理等方面。',
+    quickQuestions: [
+      { label: '年度体检', text: '成年人年度健康体检应该做哪些项目？' },
+      { label: '肺部健康', text: '日常生活中如何保护肺部健康？' },
+      { label: '反复感冒', text: '反复感冒应该做哪些检查？如何提高免疫力？' },
+      { label: '咳嗽不止', text: '持续咳嗽超过两周应该怎么办？需要做哪些检查？' }
+    ],
+    systemPrompt: `你是一位资深全科医学专家"赵文博"，拥有25年全科医疗经验，主任医师职称，专长于常见病诊疗和健康管理。
+专业领域：常见呼吸系统疾病、慢性病管理、健康体检咨询、疾病预防、生活方式医学、多病共存管理。
+回答风格：
+- 以患者为中心，综合考虑身心社会因素
+- 注重预防和早期发现
+- 给出实用可行的生活方式建议
+- 使用 **粗体** 标注关键建议和预警信号
+- 每次回答末尾提醒：以上建议仅供参考，如有不适请及时就医。`
+  }
+]
 
+function getExpert(expertId) {
+  return experts.find(e => e.id === expertId) || experts[experts.length - 1]
+}
 
+// SVG图标映射
+function expertIconSvg(name, size = 24) {
+  const s = size
+  const icons = {
+    lungs: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v17"/><path d="M12 7.5C10 5.5 7 4.5 4 4.5V16c3 .5 6 1.5 8 4"/><path d="M12 7.5c2-2 5-3 8-3V16c-3 .5-6 1.5-8 4"/><path d="M7 11v2"/><path d="M17 11v2"/></svg>`,
+    microscope: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19h14"/><path d="M7 22h10"/><path d="M10 22v-3"/><path d="M14 22v-3"/><circle cx="12" cy="9" r="5"/><path d="M12 4V2"/><circle cx="12" cy="9" r="1.5" fill="#fff"/></svg>`,
+    virus: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.5" fill="#fff"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.2 16.2l2.9 2.9"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.2 7.8l2.9-2.9"/></svg>`,
+    shield: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2.5"/></svg>`,
+    ambulance: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="15" height="10" rx="1"/><path d="M16 12h3l3 4v3h-6v-3"/><circle cx="5.5" cy="19" r="2"/><circle cx="18.5" cy="19" r="2"/><path d="M7 12h4"/><path d="M9 10v4"/></svg>`,
+    doctor: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><path d="M10 16h4"/><path d="M12 14v5"/></svg>`,
+    robot: `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M12 4v5"/><circle cx="12" cy="3" r="1.5" fill="#fff"/><circle cx="9" cy="14" r="1.5" fill="#fff"/><circle cx="15" cy="14" r="1.5" fill="#fff"/><path d="M9 18h6"/><path d="M7 9V7"/><path d="M17 9V7"/></svg>`
+  }
+  return icons[name] || icons.doctor
+}
+
+const currentExpert = computed(() => {
+  const session = consultationStore.currentSession
+  if (!session) return null
+  return getExpert(session.expertId)
+})
+
+// ==================== 时间格式化 ====================
+function formatTime(isoStr) {
+  if (!isoStr) return ''
+  const d = new Date(isoStr)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const diff = (today - target) / 86400000
+
+  const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+
+  if (diff === 0) return `今天 ${time}`
+  if (diff === 1) return `昨天 ${time}`
+  if (diff < 7) return `${diff}天前`
+  return `${d.getMonth() + 1}-${d.getDate()} ${time}`
+}
+
+function formatMessageTime(isoStr) {
+  if (!isoStr) return ''
+  const d = new Date(isoStr)
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function getCurrentTime() {
+  return new Date().toISOString()
+}
+
+// ==================== 消息处理 ====================
 function formatMessage(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>')
     .replace(/^(#{1,3})\s(.+)$/gm, (m, h, t) => `<strong>${t}</strong>`)
-}
-
-function getCurrentTime() {
-  const now = new Date()
-  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 }
 
 function scrollToBottom() {
@@ -222,36 +427,38 @@ function sendQuickQ(text) {
   handleSend()
 }
 
-// 取消当前请求
 function cancelCurrentRequest() {
   if (abortController) {
     abortController.abort()
     abortController = null
   }
+  requestGeneration++ // 使旧请求的回调失效
   isTyping.value = false
 }
+
+// ==================== 核心发送逻辑 ====================
+let requestGeneration = 0 // 请求代数标记，用于取消过期的响应
 
 async function handleSend(e) {
   if (e && e.type === 'keydown' && e.shiftKey) return
   const text = inputText.value.trim()
   if (!text || isTyping.value) return
 
-  // 取消之前的请求
   cancelCurrentRequest()
+  const currentGen = ++requestGeneration // 标记本次请求
 
-  // 添加用户消息
   consultationStore.addMessage({ role: 'user', content: text, time: getCurrentTime() })
   consultationStore.updateSessionTime(activeSessionId.value)
   inputText.value = ''
   scrollToBottom()
 
-  // 创建新的 AbortController
   abortController = new AbortController()
   isTyping.value = true
 
   try {
+    const expert = currentExpert.value
     const chatMessages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: expert?.systemPrompt || '你是一位专业的医疗AI咨询助手。' },
       ...messages.value.map(m => ({ role: m.role, content: m.content }))
     ]
     const res = await llmApi.chat({
@@ -260,38 +467,66 @@ async function handleSend(e) {
       max_tokens: 2000
     }, { signal: abortController.signal })
 
-    const aiContent = res.data?.content || '抱歉，服务暂时不可用，请稍后重试。'
-    consultationStore.addMessage({ role: 'assistant', content: aiContent, time: getCurrentTime() })
-  } catch (err) {
-    // 如果是取消导致的错误，不显示提示
-    if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+    // 如果请求已被取消（代数不匹配），不再操作
+    if (currentGen !== requestGeneration) return
+
+    // 处理后端返回的 success: false 情况
+    if (res.data?.success === false) {
+      const errMsg = res.data?.error || '服务暂时不可用'
       consultationStore.addMessage({
         role: 'assistant',
-        content: '抱歉，AI服务调用失败，请检查网络或稍后重试。',
+        content: `抱歉，AI服务暂时不可用：${errMsg}，请稍后重试。`,
+        time: getCurrentTime()
+      })
+    } else {
+      const aiContent = res.data?.content || '抱歉，服务暂时不可用，请稍后重试。'
+      consultationStore.addMessage({ role: 'assistant', content: aiContent, time: getCurrentTime() })
+    }
+  } catch (err) {
+    // 如果请求已被取消，不再操作
+    if (currentGen !== requestGeneration) return
+
+    if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+      const status = err?.response?.status
+      let errMsg = 'AI服务调用失败，请检查网络或稍后重试。'
+      if (status === 401) {
+        errMsg = '登录已过期，请重新登录后重试。'
+      } else if (status === 403) {
+        errMsg = '权限不足，无法使用AI咨询功能。'
+      }
+      consultationStore.addMessage({
+        role: 'assistant',
+        content: `抱歉，${errMsg}`,
         time: getCurrentTime()
       })
       ElMessage.error('AI回复失败，请重试')
     }
   } finally {
-    isTyping.value = false
-    abortController = null
-    scrollToBottom()
+    // 仅当代数匹配时更新状态
+    if (currentGen === requestGeneration) {
+      isTyping.value = false
+      abortController = null
+      nextTick(() => scrollToBottom())
+    }
   }
 }
 
-function newSession() {
+// ==================== 会话管理 ====================
+function startWithExpert(expertId) {
   cancelCurrentRequest()
-  consultationStore.createSession()
+  const expert = getExpert(expertId)
+  consultationStore.createSession({ expertId, expertName: expert.shortName })
+  showExpertPicker.value = false
   scrollToBottom()
 }
 
 function switchSession(id) {
-  // 取消当前请求
   cancelCurrentRequest()
-  // 切换会话
   consultationStore.switchSession(id)
-  // 滚动到底部
-  nextTick(() => scrollToBottom())
+  nextTick(() => {
+    isTyping.value = false
+    scrollToBottom()
+  })
 }
 
 function clearMessages() {
@@ -299,18 +534,17 @@ function clearMessages() {
   consultationStore.clearCurrentMessages()
 }
 
-// 监听会话切换，滚动到底部
 watch(activeSessionId, () => {
+  isTyping.value = false
   nextTick(() => scrollToBottom())
 })
 
-// 组件卸载时清理
-onBeforeUnmount(() => {
-  cancelCurrentRequest()
+onMounted(() => {
+  isTyping.value = false
 })
 
-onMounted(() => {
-  scrollToBottom()
+onBeforeUnmount(() => {
+  cancelCurrentRequest()
 })
 </script>
 
@@ -318,26 +552,47 @@ onMounted(() => {
 .consultation-page {
   .page-header {
     margin-bottom: 24px;
+
     .page-title {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 8px; font-size: 28px; font-weight: 700;
-      .title-secondary { color: var(--text-secondary); font-weight: 400; font-size: 20px; }
-      .title-sep { color: var(--glass-border); font-weight: 300; }
-      .title-main { color: var(--text-primary); }
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 28px;
+      font-weight: 700;
+
+      .title-secondary {
+        color: var(--text-secondary);
+        font-weight: 400;
+        font-size: 20px;
+      }
+
+      .title-sep {
+        color: var(--glass-border);
+        font-weight: 300;
+      }
+
+      .title-main {
+        color: var(--text-primary);
+      }
     }
-    .page-subtitle { font-size: 14px; color: var(--text-secondary); }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
   }
 
   .chat-layout {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 320px 1fr;
     gap: 20px;
     height: calc(100vh - 180px);
     min-height: 500px;
   }
 }
 
-// 会话列表面板
+// ==================== 会话列表面板 ====================
 .session-panel {
   display: flex;
   flex-direction: column;
@@ -358,6 +613,19 @@ onMounted(() => {
     padding: 8px;
   }
 
+  .session-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+
+    .hint {
+      font-size: 12px;
+      margin-top: 8px;
+      opacity: 0.6;
+    }
+  }
+
   .session-item {
     display: flex;
     align-items: center;
@@ -365,33 +633,282 @@ onMounted(() => {
     padding: 12px;
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: all 0.3s ease;
     margin-bottom: 4px;
+    position: relative;
 
-    &:hover { background: var(--glass-bg); }
+    &:hover {
+      background: var(--glass-bg);
+
+      .session-delete {
+        opacity: 1;
+      }
+    }
+
     &.active {
-      background: var(--primary-light);
+      background: rgba(16, 185, 129, 0.1);
     }
 
     .session-icon {
-      width: 36px; height: 36px;
-      background: var(--glass-bg);
+      width: 36px;
+      height: 36px;
       border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      background: transparent;
+      line-height: 0;
+
+      :deep(svg) {
+        color: #fff;
+        display: block;
+      }
     }
 
-    .session-info { flex: 1; overflow: hidden; }
-    .session-title {
-      font-size: 13px; font-weight: 500; color: var(--text-primary);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    .session-info {
+      flex: 1;
+      overflow: hidden;
     }
-    .session-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .session-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 3px;
+    }
+
+    .session-expert {
+      font-size: 11px;
+      color: var(--primary);
+      background: rgba(16, 185, 129, 0.12);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .session-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .session-delete {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: #EF4444;
+      }
+    }
   }
 }
 
-// 聊天面板
+// ==================== 空状态 - 专家选择 ====================
+.chat-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  padding: 40px 40px 20px;
+  overflow-y: auto;
+
+  .empty-icon-big {
+    margin-bottom: 16px;
+
+    :deep(svg) {
+      color: var(--primary, #10B981);
+    }
+  }
+
+  h3 {
+    font-size: 20px;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .expert-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    width: 100%;
+  }
+
+  .expert-quick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(30, 41, 59, 0.4));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+    }
+
+    .eqc-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      background: transparent;
+      line-height: 0;
+
+      :deep(svg) {
+        color: #fff;
+        display: block;
+      }
+    }
+
+    .eqc-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .eqc-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  }
+}
+
+// ==================== 专家选择弹窗 ====================
+.expert-dialog {
+  :deep(.el-dialog) {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+    border: 1px solid var(--glass-border);
+  }
+
+  :deep(.el-dialog__title) {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  :deep(.el-dialog__headerbtn .el-dialog__close) {
+    color: var(--text-muted);
+  }
+}
+
+.expert-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.expert-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(30, 41, 59, 0.4));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+  }
+
+  .ec-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: transparent;
+    line-height: 0;
+
+    :deep(svg) {
+      color: #fff;
+      display: block;
+    }
+  }
+
+  .ec-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ec-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .ec-title {
+    font-size: 12px;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+
+  .ec-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+
+  .ec-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ec-tag {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+}
+
+// ==================== 聊天面板 ====================
 .chat-panel {
   display: flex;
   flex-direction: column;
@@ -407,31 +924,57 @@ onMounted(() => {
   border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 
-  .chat-bot-info { display: flex; align-items: center; gap: 12px; }
-
-  .bot-avatar {
-    width: 40px; height: 40px;
-    background: linear-gradient(135deg, var(--primary), var(--purple));
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  .chat-bot-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .bot-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .bot-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: transparent;
+    line-height: 0;
+
+    :deep(svg) {
+      color: #fff;
+      display: block;
+    }
+  }
+
+  .bot-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
 
   .bot-status {
-    font-size: 12px; color: var(--text-muted);
-    display: flex; align-items: center; gap: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
     margin-top: 2px;
   }
 
   .status-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    &.online { background: var(--primary); box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+
+    &.online {
+      background: var(--primary);
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
   }
 }
 
-// 消息区域
+// ==================== 消息区域 ====================
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -449,37 +992,62 @@ onMounted(() => {
 
   &.user {
     align-self: flex-end;
-    flex-direction: row-reverse;
   }
 
-  &.assistant { align-self: flex-start; }
+  &.assistant {
+    align-self: flex-start;
+  }
 }
 
 @keyframes msgEnter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message-avatar {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  font-size: 14px; font-weight: 600;
+  line-height: 0;
 
   &.bot {
-    background: linear-gradient(135deg, var(--primary), var(--purple));
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    :deep(svg) {
+      color: #fff;
+      display: block;
+    }
   }
 
   &.user {
-    background: linear-gradient(135deg, var(--blue), var(--primary));
-    color: white;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--primary, #10B981);
+    font-size: 14px;
+    font-weight: 600;
   }
 }
 
-.message-content { display: flex; flex-direction: column; gap: 4px; }
-.user-content { align-items: flex-end; }
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-content {
+  align-items: flex-end;
+}
 
 .message-bubble {
   padding: 14px 18px;
@@ -524,7 +1092,7 @@ onMounted(() => {
   font-size: 13px;
   color: var(--primary);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.3s ease;
   text-align: center;
 
   &:hover {
@@ -543,27 +1111,48 @@ onMounted(() => {
 }
 
 // 打字动画
-.typing-bubble { padding: 16px 20px; }
+.typing-bubble {
+  padding: 16px 20px;
+}
 
 .typing-indicator {
-  display: flex; gap: 5px; align-items: center;
+  display: flex;
+  gap: 5px;
+  align-items: center;
 
   span {
-    width: 8px; height: 8px;
+    width: 8px;
+    height: 8px;
     background: var(--text-secondary);
     border-radius: 50%;
     animation: typingBounce 1.4s ease-in-out infinite;
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
   }
 }
 
 @keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-6px); opacity: 1; }
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
 }
 
-// 输入区域
+// ==================== 输入区域 ====================
 .chat-input-area {
   display: flex;
   align-items: flex-end;
@@ -574,6 +1163,7 @@ onMounted(() => {
 
   .chat-input {
     flex: 1;
+
     :deep(.el-textarea__inner) {
       background: var(--glass-bg) !important;
       border: 1px solid var(--glass-border) !important;
@@ -583,7 +1173,10 @@ onMounted(() => {
       resize: none;
       font-size: 14px;
 
-      &::placeholder { color: var(--text-muted); }
+      &::placeholder {
+        color: var(--text-muted);
+      }
+
       &:focus {
         border-color: var(--primary) !important;
         box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
@@ -592,7 +1185,8 @@ onMounted(() => {
   }
 
   .send-btn {
-    width: 48px; height: 48px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--radius-md) !important;
     flex-shrink: 0;
   }
@@ -601,7 +1195,33 @@ onMounted(() => {
 // 欢迎消息样式
 .welcome-message .message-bubble.bot p {
   margin-bottom: 8px;
-  &:last-child { margin-bottom: 0; }
-  strong { color: var(--primary); }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  strong {
+    color: var(--primary);
+  }
+}
+
+// ==================== 响应式 ====================
+@media (max-width: 768px) {
+  .chat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .session-panel {
+    display: none;
+  }
+
+  .expert-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expert-quick-grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
 }
 </style>

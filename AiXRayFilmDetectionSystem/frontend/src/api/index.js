@@ -162,6 +162,7 @@ export const systemApi = {
   }),
   switchModel: (data) => request.put('/api/system/admin/models/switch', data),
   updateModelParams: (data) => request.put('/api/system/admin/models/params', data),
+  resetModelParams: () => request.put('/api/system/admin/models/params/reset'),
   // API管理
   listApiRoutes: () => request.get('/api/system/admin/api-routes')
 }

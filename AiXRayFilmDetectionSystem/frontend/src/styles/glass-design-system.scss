@@ -8,41 +8,41 @@
   --bg-primary: #0F172A;
   --bg-secondary: #1E293B;
   --bg-tertiary: #334155;
-  
+
   /* 玻璃效果 */
   --glass-bg: rgba(16, 185, 129, 0.08);
   --glass-bg-hover: rgba(16, 185, 129, 0.12);
   --glass-border: rgba(16, 185, 129, 0.15);
   --glass-border-hover: rgba(16, 185, 129, 0.3);
   --glass-blur: blur(20px);
-  
+
   /* 主色调 - 医疗绿 */
   --primary: #10B981;
   --primary-light: rgba(16, 185, 129, 0.2);
   --primary-dark: #059669;
-  
+
   /* 辅助色 */
   --purple: #8B5CF6;
   --blue: #3B82F6;
   --orange: #F59E0B;
   --red: #EF4444;
-  
+
   /* 文字色 */
   --text-primary: #F3F4F6;
   --text-secondary: #9CA3AF;
   --text-muted: #6B7280;
-  
+
   /* 卡片 */
   --card-bg: rgba(30, 41, 59, 0.6);
   --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   --card-shadow-hover: 0 24px 70px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.1);
-  
+
   /* 圆角 */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
-  
+
   /* 过渡 */
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
@@ -79,7 +79,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--glass-border);
   border-radius: 4px;
-  
+
   &:hover {
     background: var(--glass-border-hover);
   }
@@ -95,13 +95,13 @@ body {
   opacity: 0.15;
   pointer-events: none;
   z-index: -1;
-  
+
   &.glow-1 {
     top: -200px;
     left: -200px;
     background: var(--primary);
   }
-  
+
   &.glow-2 {
     bottom: -200px;
     right: -200px;
@@ -121,7 +121,7 @@ body {
   transition: all var(--transition-normal);
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -131,26 +131,26 @@ body {
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   }
-  
+
   &:hover {
     transform: translateY(-4px);
     border-color: var(--glass-border-hover);
     box-shadow: var(--card-shadow-hover);
   }
-  
+
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
   }
-  
+
   .card-title {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
   }
-  
+
   .card-action {
     font-size: 12px;
     color: var(--text-secondary);
@@ -159,7 +159,7 @@ body {
     align-items: center;
     gap: 4px;
     transition: color var(--transition-fast);
-    
+
     &:hover {
       color: var(--primary);
     }
@@ -180,38 +180,38 @@ body {
   background: var(--glass-bg);
   color: var(--text-primary);
   backdrop-filter: blur(12px);
-  
+
   &:hover {
     background: var(--glass-bg-hover);
     border-color: var(--glass-border-hover);
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
   }
-  
+
   &.primary {
     background: var(--primary);
     border-color: var(--primary);
-    
+
     &:hover {
       background: var(--primary-dark);
       box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
     }
   }
-  
+
   &.purple {
     background: var(--purple);
     border-color: var(--purple);
-    
+
     &:hover {
       background: #7C3AED;
       box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
     }
   }
-  
+
   &.orange {
     background: var(--orange);
     border-color: var(--orange);
-    
+
     &:hover {
       background: #D97706;
       box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
@@ -233,15 +233,15 @@ body {
   outline: none;
   transition: all var(--transition-normal);
   width: 100%;
-  
+
   &::placeholder {
     color: var(--text-muted);
   }
-  
+
   &:hover {
     border-color: var(--glass-border-hover);
   }
-  
+
   &:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 0 20px rgba(16, 185, 129, 0.1);
@@ -259,11 +259,11 @@ body {
   outline: none;
   cursor: pointer;
   transition: all var(--transition-normal);
-  
+
   &:hover {
     border-color: var(--glass-border-hover);
   }
-  
+
   option {
     background: var(--bg-secondary);
     color: var(--text-primary);
@@ -277,7 +277,7 @@ body {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
-  
+
   .tab {
     padding: 10px 24px;
     border-radius: var(--radius-md);
@@ -288,11 +288,11 @@ body {
     background: var(--card-bg);
     border: 1px solid var(--glass-border);
     color: var(--text-secondary);
-    
+
     &:hover {
       border-color: var(--glass-border-hover);
     }
-    
+
     &.active {
       background: var(--primary);
       border-color: var(--primary);
@@ -310,36 +310,36 @@ body {
   border-radius: var(--radius-lg);
   padding: 20px;
   transition: all var(--transition-normal);
-  
+
   &:hover {
     border-color: var(--glass-border-hover);
     background: var(--glass-bg-hover);
     transform: translateY(-2px);
   }
-  
+
   .stat-label {
     font-size: 12px;
     color: var(--text-secondary);
     margin-bottom: 8px;
   }
-  
+
   .stat-value {
     font-size: 24px;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
   }
-  
+
   .stat-change {
     font-size: 12px;
     display: flex;
     align-items: center;
     gap: 4px;
-    
+
     &.positive {
       color: var(--primary);
     }
-    
+
     &.negative {
       color: var(--red);
     }
@@ -356,11 +356,11 @@ body {
   border-radius: var(--radius-md);
   transition: all var(--transition-normal);
   cursor: pointer;
-  
+
   &:hover {
     background: var(--glass-bg);
   }
-  
+
   .list-icon {
     width: 40px;
     height: 40px;
@@ -369,52 +369,68 @@ body {
     align-items: center;
     justify-content: center;
     margin-right: 16px;
-    
+
     &.green {
       background: rgba(16, 185, 129, 0.2);
-      svg, i { color: var(--primary); }
+
+      svg,
+      i {
+        color: var(--primary);
+      }
     }
-    
+
     &.purple {
       background: rgba(139, 92, 246, 0.2);
-      svg, i { color: var(--purple); }
+
+      svg,
+      i {
+        color: var(--purple);
+      }
     }
-    
+
     &.orange {
       background: rgba(245, 158, 11, 0.2);
-      svg, i { color: var(--orange); }
+
+      svg,
+      i {
+        color: var(--orange);
+      }
     }
-    
+
     &.blue {
       background: rgba(59, 130, 246, 0.2);
-      svg, i { color: var(--blue); }
+
+      svg,
+      i {
+        color: var(--blue);
+      }
     }
   }
-  
+
   .list-content {
     flex: 1;
   }
-  
+
   .list-title {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 4px;
   }
-  
+
   .list-desc {
     font-size: 12px;
     color: var(--text-secondary);
   }
-  
+
   .list-value {
     text-align: right;
   }
-  
+
   .list-value-main {
     font-size: 14px;
     font-weight: 600;
   }
-  
+
   .list-value-sub {
     font-size: 12px;
     color: var(--text-secondary);
@@ -432,12 +448,12 @@ body {
   border: 1px solid var(--glass-border) !important;
   border-radius: var(--radius-xl) !important;
   color: var(--text-primary) !important;
-  
+
   .el-card__header {
     border-bottom: 1px solid var(--glass-border) !important;
     color: var(--text-primary) !important;
   }
-  
+
   &:hover {
     border-color: var(--glass-border-hover) !important;
     box-shadow: var(--card-shadow-hover) !important;
@@ -650,22 +666,22 @@ body {
 .el-tag {
   border-radius: var(--radius-sm) !important;
   border: none !important;
-  
+
   &.el-tag--success {
     background: rgba(16, 185, 129, 0.2) !important;
     color: var(--primary) !important;
   }
-  
+
   &.el-tag--warning {
     background: rgba(245, 158, 11, 0.2) !important;
     color: var(--orange) !important;
   }
-  
+
   &.el-tag--danger {
     background: rgba(239, 68, 68, 0.2) !important;
     color: var(--red) !important;
   }
-  
+
   &.el-tag--info {
     background: rgba(156, 163, 175, 0.2) !important;
     color: var(--text-secondary) !important;
@@ -723,31 +739,31 @@ body {
 .el-table {
   background: transparent !important;
   color: var(--text-primary) !important;
-  
+
   &::before {
     display: none !important;
   }
-  
+
   th.el-table__cell {
     background: rgba(16, 185, 129, 0.1) !important;
     color: var(--text-primary) !important;
     border-bottom: 1px solid rgba(16, 185, 129, 0.2) !important;
     font-weight: 600 !important;
   }
-  
+
   td.el-table__cell {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
     color: var(--text-primary) !important;
   }
-  
+
   tr {
     background: rgba(255, 255, 255, 0.02) !important;
-    
+
     &:hover td {
       background: rgba(16, 185, 129, 0.08) !important;
     }
   }
-  
+
   .el-table__empty-text {
     color: var(--text-muted) !important;
   }
@@ -756,25 +772,25 @@ body {
 /* 玻璃表格 - 统一浅色背景 */
 .glass-table {
   background: transparent !important;
-  
+
   :deep(.el-table__inner-wrapper::before) {
     display: none !important;
   }
-  
+
   :deep(.el-table__header th) {
     background: rgba(16, 185, 129, 0.1) !important;
     color: var(--text-primary) !important;
     font-weight: 600 !important;
   }
-  
+
   :deep(.el-table__body tr) {
     background: rgba(255, 255, 255, 0.02) !important;
-    
+
     td {
       color: var(--text-primary) !important;
     }
-    
-    &:hover > td {
+
+    &:hover>td {
       background: rgba(16, 185, 129, 0.08) !important;
     }
   }
@@ -785,23 +801,24 @@ body {
   --el-pagination-bg-color: var(--card-bg) !important;
   --el-pagination-hover-color: var(--primary) !important;
   --el-pagination-text-color: var(--text-secondary) !important;
-  
+
   .el-pager li {
     background: var(--card-bg) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: var(--radius-sm) !important;
-    
+
     &:hover {
       border-color: var(--primary) !important;
     }
-    
+
     &.is-active {
       background: var(--primary) !important;
       border-color: var(--primary) !important;
     }
   }
-  
-  .btn-prev, .btn-next {
+
+  .btn-prev,
+  .btn-next {
     background: var(--card-bg) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: var(--radius-sm) !important;
@@ -882,22 +899,22 @@ body {
 /* 上传组件 */
 .el-upload-dragger {
   background: rgba(30, 41, 59, 0.6) !important;
-  border: 2px dashed rgba(16, 185, 129, 0.3) !important;
+  // border: 2px dashed rgba(16, 185, 129, 0.3) !important;
   border-radius: var(--radius-md) !important;
   transition: all var(--transition-normal) !important;
-  
+
   &:hover {
     border-color: rgba(16, 185, 129, 0.5) !important;
     background: rgba(16, 185, 129, 0.05) !important;
   }
-  
+
   .el-icon--upload {
     color: var(--primary) !important;
   }
-  
+
   .el-upload__text {
     color: var(--text-secondary) !important;
-    
+
     em {
       color: var(--primary) !important;
     }
@@ -911,24 +928,24 @@ body {
     border-radius: var(--radius-sm) !important;
     color: var(--text-primary) !important;
     transition: all var(--transition-normal) !important;
-    
+
     &:hover {
       background: var(--glass-bg) !important;
       border-color: var(--glass-border-hover) !important;
     }
-    
+
     .el-icon--close {
       color: var(--text-secondary) !important;
-      
+
       &:hover {
         color: var(--red) !important;
       }
     }
-    
+
     .el-upload-list__item-name {
       color: var(--text-primary) !important;
     }
-    
+
     .el-upload-list__item-status-label {
       .el-icon {
         color: var(--primary) !important;
@@ -940,15 +957,15 @@ body {
 /* 面包屑 */
 .el-breadcrumb {
   font-size: 14px !important;
-  
+
   .el-breadcrumb__inner {
     color: var(--text-secondary) !important;
-    
+
     &.is-link:hover {
       color: var(--primary) !important;
     }
   }
-  
+
   .el-breadcrumb__separator {
     color: var(--text-muted) !important;
   }
@@ -1507,7 +1524,7 @@ body {
     }
   }
 
-  .el-tree-node.is-current > .el-tree-node__content {
+  .el-tree-node.is-current>.el-tree-node__content {
     background: var(--glass-bg) !important;
     color: var(--primary) !important;
   }
@@ -1634,6 +1651,7 @@ body {
 
 /* 折叠状态的菜单项 - 水平居中 */
 .el-menu--collapse {
+
   .el-menu-item,
   .el-sub-menu__title {
     justify-content: center !important;
@@ -1677,20 +1695,41 @@ body {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* 脉动动画 */
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }
 
 /* 渐入动画 */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-in {

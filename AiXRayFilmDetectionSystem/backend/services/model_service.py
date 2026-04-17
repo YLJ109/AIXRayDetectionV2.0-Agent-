@@ -791,7 +791,7 @@ class ModelService:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'weights'
         )
-        supported_ext = ('.pth', '.pt', '.onnx')
+        supported_ext = ('.pth', '.pt', '.onnx', '.pkl', '.bin')
         models = []
 
         if os.path.isdir(weights_dir):
