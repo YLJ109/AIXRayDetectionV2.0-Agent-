@@ -1,0 +1,68 @@
+"""Flask应用配置管理"""
+import os
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
+
+
+class Config:
+    """基础配置"""
+    SECRET_KEY = os.getenv('SECRET_KEY', 'aixray-default-secret-key')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'aixray-default-jwt-secret')
+    JWT_ACCESS_TOKEN_EXPIRES = 2592000  # 30天（秒）
+
+    # SQLite数据库
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(BASE_DIR, "data", "aixray.db")}'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # 文件上传
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+    MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB（模型权重文件较大）
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'dcm', 'dicom'}
+
+    # AI模型
+    MODEL_WEIGHTS_DIR = os.path.join(BASE_DIR, 'model_files')
+    DEFAULT_MODEL_PATH = os.path.join(
+        os.path.dirname(BASE_DIR),
+        'ChestX-ray14', 'output', 'best_model.pth'
+    )
+
+    # LLM配置
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+    OPENAI_API_BASE = os.getenv('OPENAI_API_BASE', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
+    LLM_ENCRYPTION_KEY = os.getenv('LLM_ENCRYPTION_KEY', 'aixray-llm-encryption-secret-key-2026')
+
+    # 诊断阈值
+    DISEASE_THRESHOLD = 0.7
+
+    # 热力图
+    HEATMAP_ALPHA = 0.4
+
+    # AI推理设备 (cuda/cpu/auto)，auto=自动检测
+    AI_DEVICE = os.getenv('AI_DEVICE', 'auto')
+
+    # 审计日志保留天数
+    AUDIT_RETENTION_DAYS = 180
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+    FLASK_ENV = 'development'
+
+
+class ProductionConfig(Config):
+    DEBUG = False
+    FLASK_ENV = 'production'
+
+
+config_map = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'default': DevelopmentConfig,
+}
+
+
+def get_config():
+    env = os.getenv('FLASK_ENV', 'development')
+    return config_map.get(env, DevelopmentConfig)
