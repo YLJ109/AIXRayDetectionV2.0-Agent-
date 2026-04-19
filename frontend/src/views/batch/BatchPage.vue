@@ -74,7 +74,8 @@
         <!-- 图片列表 - 两列网格，左图右信息 -->
         <div v-if="imageItems.length > 0" class="image-grid">
           <div v-for="(item, idx) in imageItems" :key="idx" class="image-card">
-            <el-button class="image-card-close" type="danger" :icon="Close" circle size="small" @click="removeImage(idx)" />
+            <el-button class="image-card-close" type="danger" :icon="Close" circle size="small"
+              @click="removeImage(idx)" />
             <div class="image-card-left">
               <img v-if="item.previewUrl" :src="item.previewUrl" class="image-thumb" />
               <div v-else class="image-thumb-placeholder">
@@ -142,16 +143,24 @@
         <!-- 操作按钮 -->
         <div class="upload-actions">
           <el-button v-if="!diagnosing && imageItems.length > 0" @click="triggerAddImages">
-            <el-icon><Plus /></el-icon> 继续添加
+            <el-icon>
+              <Plus />
+            </el-icon> 继续添加
           </el-button>
           <el-button v-if="!diagnosing" type="primary" :disabled="hasNoRealFiles" @click="startDiagnosis">
-            <el-icon><Cpu /></el-icon> 开始检测 ({{ imageItems.length }}张)
+            <el-icon>
+              <Cpu />
+            </el-icon> 开始检测 ({{ imageItems.length }}张)
           </el-button>
           <el-button v-else type="danger" @click="stopDiagnosis">
-            <el-icon><VideoPause /></el-icon> 停止检测
+            <el-icon>
+              <VideoPause />
+            </el-icon> 停止检测
           </el-button>
           <el-button v-if="!diagnosing && imageItems.length > 0" type="danger" plain @click="imageItems = []">
-            <el-icon><Delete /></el-icon> 清空
+            <el-icon>
+              <Delete />
+            </el-icon> 清空
           </el-button>
         </div>
       </div>
@@ -177,13 +186,18 @@
           <template v-if="diagnosing">
             <el-tag type="warning" size="small">检测中 {{ completedCount }}/{{ totalDiagnoseCount }}</el-tag>
             <el-button type="danger" size="small" @click="stopDiagnosis" style="margin-left: 8px;">
-              <el-icon><VideoPause /></el-icon> 停止检测
+              <el-icon>
+                <VideoPause />
+              </el-icon> 停止检测
             </el-button>
           </template>
           <template v-else>
             <el-tag type="success" size="small">完成 {{ completedCount }}/{{ totalDiagnoseCount }}</el-tag>
-            <el-button v-if="diagnoses.length > 0" type="danger" plain size="small" style="margin-left: 8px;" @click="resetAll">
-              <el-icon><Delete /></el-icon> 全部清空
+            <el-button v-if="diagnoses.length > 0" type="danger" plain size="small" style="margin-left: 8px;"
+              @click="resetAll">
+              <el-icon>
+                <Delete />
+              </el-icon> 全部清空
             </el-button>
           </template>
         </div>
